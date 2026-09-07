@@ -14,9 +14,9 @@ function parseChineseCatalog(markdown) {
     purposes.set(match[1], match[2].trim());
   }
 
-  for (const match of markdown.matchAll(/```(?:text)?\n([\s\S]*?)```/g)) {
-    const example = match[1].trim();
-    const slug = example.match(/^\$([a-z0-9-]+)\b/)?.[1];
+  for (const line of markdown.split(/\r?\n/)) {
+    const example = line.trim();
+    const slug = example.match(/^\$([a-z0-9-]+)\s+.+$/)?.[1];
     if (slug && !examples.has(slug)) examples.set(slug, example);
   }
 

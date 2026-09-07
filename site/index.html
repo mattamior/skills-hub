@@ -3,83 +3,95 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A browsable catalog of reusable Agent Skills for ChatGPT and Codex, with install and invocation guidance.">
-  <title>Agent Skills — mattamior</title>
+  <meta id="meta-description" name="description"
+    content="A browsable catalog of reusable Agent Skills for ChatGPT and Codex, with install and invocation guidance."
+    data-content-en="A browsable catalog of reusable Agent Skills for ChatGPT and Codex, with install and invocation guidance."
+    data-content-zh="面向 ChatGPT 与 Codex 的可复用 Agent Skills 目录，提供安装与调用说明。">
+  <title data-en="Agent Skills — mattamior" data-zh="Agent Skills — mattamior">Agent Skills — mattamior</title>
   <link rel="canonical" href="https://skills-hub.hkooii.com/">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="shell topbar">
-    <a class="wordmark" href="/" aria-label="Agent Skills home">Agent Skills<span>.</span></a>
-    <nav aria-label="Primary navigation">
-      <a href="#catalog">Catalog</a>
-      <a href="#usage">How to use</a>
+    <a class="wordmark" href="/" aria-label="Agent Skills home" data-aria-en="Agent Skills home" data-aria-zh="Agent Skills 首页">Agent Skills<span>.</span></a>
+    <nav aria-label="Primary navigation" data-aria-en="Primary navigation" data-aria-zh="主导航">
+      <a href="#catalog" data-en="Catalog" data-zh="技能目录">Catalog</a>
+      <a href="#usage" data-en="How to use" data-zh="如何使用">How to use</a>
       <a href="https://github.com/mattamior/skills-hub">GitHub ↗</a>
+      <div role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+        <button class="button" type="button" data-lang="en">EN</button>
+        <button class="button" type="button" data-lang="zh">中文</button>
+      </div>
     </nav>
   </header>
 
   <main class="shell">
     <section class="hero">
       <p class="eyebrow">mattamior / skills-hub</p>
-      <h1>Reusable skills for<br><em>serious agent work.</em></h1>
-      <p class="lede">A repository-first catalog of focused Agent Skills for ChatGPT and Codex. Compare the collection, open a dedicated skill page, copy the install command, and start with a ready-to-use invocation.</p>
+      <h1><span data-en="Reusable skills for" data-zh="可复用的 Skills，">Reusable skills for</span><br><em data-en="serious agent work." data-zh="服务于严肃的 Agent 工作。">serious agent work.</em></h1>
+      <p class="lede"
+        data-en="A repository-first catalog of focused Agent Skills for ChatGPT and Codex. Compare the collection, open a dedicated skill page, copy the install command, and start with a ready-to-use invocation."
+        data-zh="一个以仓库为事实源的 Agent Skills 目录，面向 ChatGPT 与 Codex。你可以浏览集合、打开独立 Skill 详情页、复制安装命令，并直接使用可复制的调用示例。">A repository-first catalog of focused Agent Skills for ChatGPT and Codex. Compare the collection, open a dedicated skill page, copy the install command, and start with a ready-to-use invocation.</p>
       <div class="hero-actions">
-        <a class="button button-primary" href="#catalog">Browse skills</a>
-        <a class="button" href="#usage">How to use</a>
+        <a class="button button-primary" href="#catalog" data-en="Browse skills" data-zh="浏览 Skills">Browse skills</a>
+        <a class="button" href="#usage" data-en="How to use" data-zh="如何使用">How to use</a>
       </div>
       <div class="stats" aria-live="polite">
-        <div><strong id="skill-count">—</strong><span>skills</span></div>
-        <div><strong>Apache-2.0</strong><span>license</span></div>
-        <div><strong>Repository-first</strong><span>source of truth</span></div>
+        <div><strong id="skill-count">—</strong><span data-en="skills" data-zh="个 Skills">skills</span></div>
+        <div><strong>Apache-2.0</strong><span data-en="license" data-zh="许可证">license</span></div>
+        <div><strong>Repository-first</strong><span data-en="source of truth" data-zh="单一事实来源">source of truth</span></div>
       </div>
     </section>
 
     <section id="catalog" class="catalog" aria-labelledby="catalog-heading">
       <div class="catalog-head">
         <div>
-          <p class="eyebrow">Catalog</p>
-          <h2 id="catalog-heading">Explore the collection</h2>
+          <p class="eyebrow" data-en="Catalog" data-zh="技能目录">Catalog</p>
+          <h2 id="catalog-heading" data-en="Explore the collection" data-zh="浏览技能集合">Explore the collection</h2>
         </div>
         <label class="search">
-          <span class="sr-only">Search skills</span>
-          <input id="search" type="search" placeholder="Search skills…" autocomplete="off">
+          <span class="sr-only" data-en="Search skills" data-zh="搜索 Skills">Search skills</span>
+          <input id="search" type="search" placeholder="Search skills…" data-placeholder-en="Search skills…" data-placeholder-zh="搜索 Skills…" autocomplete="off">
         </label>
       </div>
       <div id="skill-grid" class="skill-grid" aria-live="polite"></div>
-      <p id="empty-state" class="empty" hidden>No skills match that search.</p>
+      <p id="empty-state" class="empty" hidden data-en="No skills match that search." data-zh="没有匹配的 Skills。">No skills match that search.</p>
     </section>
 
     <section id="usage" class="usage" aria-labelledby="usage-heading">
       <div class="section-intro">
-        <p class="eyebrow">Use a skill</p>
-        <h2 id="usage-heading">From discovery to invocation</h2>
-        <p>Each detail page is generated from the skill itself, so the catalog stays aligned with the repository instead of maintaining a second manual description.</p>
+        <p class="eyebrow" data-en="Use a skill" data-zh="使用 Skill">Use a skill</p>
+        <h2 id="usage-heading" data-en="From discovery to invocation" data-zh="从发现到调用">From discovery to invocation</h2>
+        <p data-en="Each detail page is generated from the skill itself, so the catalog stays aligned with the repository instead of maintaining a second manual description."
+          data-zh="每个详情页都由 Skill 自身的数据生成，因此网站与仓库保持一致，不再维护第二份手工描述。">Each detail page is generated from the skill itself, so the catalog stays aligned with the repository instead of maintaining a second manual description.</p>
       </div>
       <div class="usage-steps">
         <article>
           <span>01</span>
-          <h3>Choose a skill</h3>
-          <p>Open a catalog entry to review its scope, trigger contract, source instructions, and ready-to-use prompt.</p>
+          <h3 data-en="Choose a skill" data-zh="选择 Skill">Choose a skill</h3>
+          <p data-en="Open a catalog entry to review its scope, trigger contract, source instructions, and ready-to-use prompt."
+            data-zh="打开目录中的 Skill，查看适用范围、触发契约、源指令和可直接使用的提示词。">Open a catalog entry to review its scope, trigger contract, source instructions, and ready-to-use prompt.</p>
         </article>
         <article>
           <span>02</span>
-          <h3>Install for Codex</h3>
-          <p>Copy the skill-specific <code>link-skills.sh</code> command. A user-level install makes the skill available across Codex projects.</p>
+          <h3 data-en="Install for Codex" data-zh="安装到 Codex">Install for Codex</h3>
+          <p><span data-en="Copy the skill-specific" data-zh="复制该 Skill 专用的">Copy the skill-specific</span> <code>link-skills.sh</code> <span data-en="command. A user-level install makes the skill available across Codex projects." data-zh="命令。安装到用户级后，它可在多个 Codex 项目中直接发现。">command. A user-level install makes the skill available across Codex projects.</span></p>
         </article>
         <article>
           <span>03</span>
-          <h3>Invoke it</h3>
-          <p>Start a Codex request with <code>$skill-name</code>, or select the matching skill in ChatGPT when the Skills picker is available.</p>
+          <h3 data-en="Invoke it" data-zh="调用 Skill">Invoke it</h3>
+          <p><span data-en="Start a Codex request with" data-zh="在 Codex 请求开头使用">Start a Codex request with</span> <code>$skill-name</code><span data-en=", or select the matching skill in ChatGPT when the Skills picker is available." data-zh="，或者在 ChatGPT 的 Skills 选择器可用时选择对应 Skill。">, or select the matching skill in ChatGPT when the Skills picker is available.</span></p>
         </article>
       </div>
     </section>
   </main>
 
   <footer class="shell footer">
-    <span>Built from the repository source of truth.</span>
-    <a href="https://github.com/mattamior/skills-hub">View source ↗</a>
+    <span data-en="Built from the repository source of truth." data-zh="基于仓库事实源生成。">Built from the repository source of truth.</span>
+    <a href="https://github.com/mattamior/skills-hub" data-en="View source ↗" data-zh="查看源码 ↗">View source ↗</a>
   </footer>
 
+  <script src="/lang.js"></script>
   <script type="module" src="/app.js"></script>
   <script type="application/json" id="gallery-source">/skills.json</script>
 </body>

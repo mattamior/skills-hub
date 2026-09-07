@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-site.mjs",
+    "build": "node scripts/build-site.mjs && node scripts/localize-site.mjs",
     "check:site": "node scripts/verify-site.mjs",
     "check": "npm run build && npm run check:site"
   },

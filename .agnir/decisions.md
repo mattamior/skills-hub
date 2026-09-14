@@ -12,4 +12,6 @@
 - Use maintained parsers for build-time YAML and Markdown semantics instead of repository-specific scalar/Markdown parsers; keep Markdown raw HTML disabled when rendering skill contracts.
 - Keep the gallery build deterministic apart from revision-bearing health metadata; do not add wall-clock timestamps to catalog data when no consumer requires them.
 - Keep validation, installer exercises, production catalog acceptance, localization coverage, and browser smoke tests data-driven over the complete skill set; adding a skill must not require editing CI or deployment allowlists.
-- Use a committed npm lockfile and `npm ci` in validation/deployment so parser, browser-test, and deployment tooling resolve reproducibly.
+- Use a committed npm lockfile and `npm ci` in validation/deployment so parser and browser-test tooling resolve reproducibly. Keep deployment-only Wrangler outside the project dependency graph and pin its version in the deployment action.
+- Reference reusable GitHub Actions by immutable commit SHA and use Dependabot to surface controlled updates rather than following moving major-version tags implicitly.
+- Verify Cloudflare Pages delivery behavior externally after deployment, including security headers and the indexing boundary between provider `pages.dev` surfaces and the canonical custom domain.

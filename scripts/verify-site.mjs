@@ -50,8 +50,18 @@ if (!detailScript.includes("#skill-localization") || !detailScript.includes("ski
 if (!languageScript.includes("skills-hub-language") || !languageScript.includes("localStorage")) throw new Error("Language preference persistence is missing");
 if (!sitemap.includes("https://skills-hub.hkooii.com/")) throw new Error("Sitemap is missing the canonical root URL");
 if (!robots.includes("Sitemap: https://skills-hub.hkooii.com/sitemap.xml")) throw new Error("robots.txt is missing the canonical sitemap URL");
-if (!headers.includes("X-Frame-Options: DENY") || !headers.includes("Permissions-Policy:")) throw new Error("Cloudflare Pages security headers are incomplete");
-if (!headers.includes("https://skills-hub-ea7.pages.dev/*") || !headers.includes("X-Robots-Tag: noindex")) throw new Error("Provider Pages URL is not excluded from indexing");
+for (const header of [
+  "X-Frame-Options: DENY",
+  "X-Content-Type-Options: nosniff",
+  "Referrer-Policy: strict-origin-when-cross-origin",
+  "Permissions-Policy:",
+  "Cross-Origin-Opener-Policy: same-origin"
+]) {
+  if (!headers.includes(header)) throw new Error(`Cloudflare Pages security headers are missing ${header}`);
+}
+if (!headers.includes("https://skills-hub-ea7.pages.dev/*") || !headers.includes("https://:version.skills-hub-ea7.pages.dev/*") || !headers.includes("X-Robots-Tag: noindex")) {
+  throw new Error("Provider Pages URLs are not excluded from indexing");
+}
 if (!notFound.includes("Page not found") || !notFound.includes('data-lang="zh"')) throw new Error("Bilingual 404 page is incomplete");
 
 console.log(`Verified deterministic bilingual catalog output for ${data.skills.length} skill(s), including SEO, security metadata, and detail pages.`);

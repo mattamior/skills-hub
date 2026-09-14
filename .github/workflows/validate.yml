@@ -6,68 +6,25 @@ on:
   pull_request:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
-          python-version: "3.12"
+          python-version: "3.12.14"
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: "22"
-
-      - name: Resolve Node dependency lock
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-
-      - name: Persist generated lock on candidate branch
-        if: >-
-          github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository &&
-          github.event.pull_request.head.ref == 'feat/structured-localization-and-smoke-tests'
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-        run: |
-          set -euo pipefail
-          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/package-lock.json"
-          status="$(curl --silent --show-error --output existing.json --write-out '%{http_code}' \
-            --header 'Accept: application/vnd.github+json' \
-            --header "Authorization: Bearer ${GH_TOKEN}" \
-            --header 'X-GitHub-Api-Version: 2022-11-28' \
-            "${api}?ref=${HEAD_REF}")"
-          if [ "$status" = "200" ]; then
-            echo "package-lock.json already exists on ${HEAD_REF}; leaving it unchanged"
-          elif [ "$status" = "404" ]; then
-            encoded="$(base64 -w0 package-lock.json)"
-            jq -n \
-              --arg message 'chore: lock gallery dependencies' \
-              --arg content "$encoded" \
-              --arg branch "$HEAD_REF" \
-              '{message:$message,content:$content,branch:$branch}' > payload.json
-            curl --fail --silent --show-error \
-              --request PUT \
-              --header 'Accept: application/vnd.github+json' \
-              --header "Authorization: Bearer ${GH_TOKEN}" \
-              --header 'X-GitHub-Api-Version: 2022-11-28' \
-              --header 'Content-Type: application/json' \
-              --data @payload.json \
-              "$api" >/dev/null
-            echo "Committed package-lock.json to ${HEAD_REF}"
-          else
-            cat existing.json >&2
-            echo "Unable to inspect package-lock.json on ${HEAD_REF} (HTTP ${status})" >&2
-            exit 1
-          fi
+          node-version: "22.23.2"
+          cache: npm
 
       - name: Install Node dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund

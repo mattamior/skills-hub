@@ -1,7 +1,0 @@
-version: 1
-project: skills-hub
-canonical_repository: mattamior/skills-hub
-state_file: .chatgpt/state.yaml
-next_steps_file: .chatgpt/next-steps.md
-decisions_file: .chatgpt/decisions.md
-provider: cloudflare

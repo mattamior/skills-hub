@@ -46,17 +46,27 @@ When adding or changing a skill:
 1. Put it in `skills/<skill-name>/` and keep the directory name equal to the `name` in `SKILL.md`.
 2. Keep shared workflow and essential constraints in `SKILL.md`; put conditional detail in `references/` and output templates in `assets/`.
 3. Keep `agents/openai.yaml` aligned and include `$<skill-name>` explicitly in its default prompt.
-4. Run repository validation:
+4. Add the Simplified Chinese catalog summary and invocation example to `locales/zh-CN.json`, then keep the matching formal copy in `README.zh.md` aligned.
+5. Run repository and site validation:
 
 ```bash
 ./scripts/validate-skills.py
+npm ci
+npm run check
 ```
 
-GitHub Actions also validates specification compatibility with a pinned Agent Skills `skills-ref` revision and exercises the install script's check, install, idempotency, and collision-rejection paths.
+The gallery build reads `SKILL.md`, `agents/openai.yaml`, and `locales/zh-CN.json` directly. `README.zh.md` is validated against the structured localization source but is not parsed as build data.
+
+GitHub Actions also validates Agent Skills specification compatibility with a pinned `skills-ref` revision, exercises the installer's check/install/idempotency/collision paths across the complete skill set, and runs real-browser Chromium smoke tests for the bilingual gallery. To run the browser smoke tests locally after installing Chromium with Playwright:
+
+```bash
+npx playwright install chromium
+npm run test:browser
+```
 
 For material routing changes, review the matching scenarios under `tests/*-trigger-cases.md`.
 
-Keep formal user documentation synchronized between `README.zh.md` and `README.en.md`. The initial release distributes standalone skills only; it does not package a plugin or publish a GitHub Release.
+Keep formal user documentation synchronized between `README.zh.md` and `README.en.md`. The repository distributes standalone skills only; it does not package a plugin or publish a GitHub Release.
 
 ## License
 

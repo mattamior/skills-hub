@@ -1,6 +1,6 @@
 # Next Actions
 
-- Enable a lightweight GitHub ruleset for `main`: require the `Validate skills` check and block force-pushes and branch deletion without adding unnecessary approval overhead for this personal repository.
-- Run an end-to-end `pet-avatar-generation` acceptance in ChatGPT using a real source pet image: explore materially distinct styles, select one direction, refine it, and request transparent-background output. Record only evidence-backed gaps that require a skill change.
-- Replace the current `README.zh.md` parsing bridge with a structured Simplified Chinese localization source, then generate or validate public documentation from that source so site localization no longer depends on Markdown layout.
-- After the pet-avatar acceptance is complete, choose the next reusable skill to add; keep gallery expansion data-driven so new catalog pages, installer checks, and deployment acceptance require no hand-maintained skill allowlist.
+- Enable a lightweight GitHub ruleset for `main`: require the `Validate skills` check and block force-pushes and branch deletion without adding unnecessary approval overhead for this personal repository. The currently connected GitHub capability cannot mutate repository rulesets.
+- Clean up stale remote topic branches after confirming any intentionally retained history and when branch-ref deletion is available. This includes historical deployment branches and temporary structured-localization branches created during hardening.
+- Run an end-to-end `pet-avatar-generation` acceptance in ChatGPT when a usable real source pet image is present in the active conversation: explore materially distinct styles, select one direction, refine it, and request transparent-background output. Record only evidence-backed gaps that require a skill change.
+- After the pet-avatar acceptance is complete, choose the next reusable skill to add; keep gallery expansion data-driven so new catalog pages, localization coverage, installer checks, browser smoke tests, and deployment acceptance require no hand-maintained skill allowlist.

@@ -1,0 +1,18 @@
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Cross-Origin-Opener-Policy: same-origin
+
+/health.json
+  Cache-Control: no-store
+
+/skills.json
+  Cache-Control: no-cache
+
+https://skills-hub-ea7.pages.dev/*
+  X-Robots-Tag: noindex
+
+https://:version.skills-hub-ea7.pages.dev/*
+  X-Robots-Tag: noindex

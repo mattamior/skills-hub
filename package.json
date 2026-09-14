@@ -3,11 +3,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-site.mjs && node scripts/localize-site.mjs",
+    "build": "node scripts/build-site.mjs",
+    "check:docs": "node scripts/verify-localization.mjs",
     "check:site": "node scripts/verify-site.mjs",
-    "check": "npm run build && npm run check:site"
+    "check": "npm run build && npm run check:docs && npm run check:site",
+    "test:browser": "playwright test",
+    "test": "npm run check && npm run test:browser"
   },
   "devDependencies": {
-    "wrangler": "^4.0.0"
+    "@playwright/test": "1.63.0",
+    "markdown-it": "15.0.2",
+    "yaml": "2.9.1"
   }
 }

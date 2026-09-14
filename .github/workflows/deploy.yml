@@ -51,15 +51,19 @@ jobs:
           echo "sha=${SHA,,}" >> "$GITHUB_OUTPUT"
 
       - name: Check out exact revision
-        uses: actions/checkout@v6
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ steps.revision.outputs.sha }}
           fetch-depth: 0
 
       - name: Set up Node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
-          node-version: "22"
+          node-version: "22.23.2"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
 
       - name: Validate manual recovery revision
         if: github.event_name == 'workflow_dispatch'
@@ -119,11 +123,11 @@ jobs:
 
       - name: Deploy exact revision to Cloudflare Pages
         id: deploy_pages
-        uses: cloudflare/wrangler-action@v4
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          wranglerVersion: "4"
+          wranglerVersion: "4.131.2"
           command: >-
             pages deploy dist
             --project-name=${{ steps.pages.outputs.project_name }}
@@ -166,7 +170,8 @@ jobs:
           validate_site() {
             local base="${1%/}"
             local label="$2"
-            local health remote_skills
+            local expect_noindex="$3"
+            local health remote_skills response_headers
             health="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "${base}/health.json")" || return 1
             printf '%s' "$health" | jq -e --arg revision "$REVISION" --argjson skills "$local_skill_count" \
               '.status == "ok" and .revision == $revision and .skills == $skills' >/dev/null || return 1
@@ -177,14 +182,28 @@ jobs:
               | jq -S . > "$remote_skills" || return 1
             jq -S . dist/skills.json > local-skills.json
             diff -u local-skills.json "$remote_skills" || return 1
+            curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "${base}/sitemap.xml" \
+              | grep -F "${PUBLIC_URL%/}/" >/dev/null || return 1
+
+            response_headers="$(mktemp)"
+            curl --fail --silent --show-error --head --connect-timeout 10 --max-time 20 "${base}/" > "$response_headers" || return 1
+            grep -i -E '^x-frame-options:[[:space:]]*DENY[[:space:]]*$' "$response_headers" >/dev/null || return 1
+            grep -i -E '^x-content-type-options:[[:space:]]*nosniff[[:space:]]*$' "$response_headers" >/dev/null || return 1
+            if [ "$expect_noindex" = "yes" ]; then
+              grep -i -E '^x-robots-tag:.*noindex' "$response_headers" >/dev/null || return 1
+            elif grep -i -E '^x-robots-tag:.*noindex' "$response_headers" >/dev/null; then
+              echo "Canonical domain unexpectedly returned noindex" >&2
+              return 1
+            fi
             echo "Accepted ${label}: ${base}"
           }
 
           retry_validate_site() {
             local base="$1"
             local label="$2"
+            local expect_noindex="$3"
             for attempt in 1 2 3 4 5 6 7 8 9 10 11 12; do
-              if validate_site "$base" "$label"; then
+              if validate_site "$base" "$label" "$expect_noindex"; then
                 return 0
               fi
               if [ "$attempt" -lt 12 ]; then sleep 5; fi
@@ -193,7 +212,7 @@ jobs:
             return 1
           }
 
-          retry_validate_site "$deployment_url" "immutable Pages deployment"
-          retry_validate_site "$PRODUCTION_URL" "Pages production URL"
-          retry_validate_site "$PUBLIC_URL" "canonical custom domain"
+          retry_validate_site "$deployment_url" "immutable Pages deployment" yes
+          retry_validate_site "$PRODUCTION_URL" "Pages production URL" yes
+          retry_validate_site "$PUBLIC_URL" "canonical custom domain" no
           echo "Cloudflare Pages production accepted: ${PUBLIC_URL%/}"

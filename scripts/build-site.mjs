@@ -1,36 +1,50 @@
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import MarkdownIt from "markdown-it";
+import YAML from "yaml";
 
 const root = process.cwd();
 const skillsDir = path.join(root, "skills");
 const siteDir = path.join(root, "site");
 const distDir = path.join(root, "dist");
+const localizationFile = path.join(root, "locales", "zh-CN.json");
 const repositoryUrl = "https://github.com/mattamior/skills-hub";
+const publicUrl = "https://skills-hub.hkooii.com";
 
 function parseFrontmatter(source) {
-  if (!source.startsWith("---\n")) throw new Error("SKILL.md must start with frontmatter");
-  const end = source.indexOf("\n---\n", 4);
-  if (end === -1) throw new Error("SKILL.md frontmatter is not closed");
-  const frontmatter = source.slice(4, end).split("\n").reduce((acc, line) => {
-    const separator = line.indexOf(":");
-    if (separator === -1) return acc;
-    acc[line.slice(0, separator).trim()] = line.slice(separator + 1).trim();
-    return acc;
-  }, {});
-  return { frontmatter, body: source.slice(end + 5).trim() };
+  const lines = source.split(/\r?\n/);
+  if (lines[0]?.trim() !== "---") throw new Error("SKILL.md must start with YAML frontmatter");
+
+  const closingIndex = lines.findIndex((line, index) => index > 0 && line.trim() === "---");
+  if (closingIndex === -1) throw new Error("SKILL.md frontmatter is not closed");
+
+  let frontmatter;
+  try {
+    frontmatter = YAML.parse(lines.slice(1, closingIndex).join("\n")) ?? {};
+  } catch (error) {
+    throw new Error(`Unable to parse SKILL.md frontmatter: ${error.message}`, { cause: error });
+  }
+  if (!frontmatter || typeof frontmatter !== "object" || Array.isArray(frontmatter)) {
+    throw new Error("SKILL.md frontmatter must be a YAML mapping");
+  }
+
+  return {
+    frontmatter,
+    body: lines.slice(closingIndex + 1).join("\n").trim()
+  };
 }
 
-function readYamlScalar(source, key) {
-  const match = source.match(new RegExp(`^\\s+${key}:\\s*(.+)$`, "m"));
-  if (!match) return null;
-  const raw = match[1].trim();
-  if (raw.startsWith('"') && raw.endsWith('"')) {
-    return JSON.parse(raw);
+function parseYamlMapping(source, label) {
+  let value;
+  try {
+    value = YAML.parse(source);
+  } catch (error) {
+    throw new Error(`Unable to parse ${label}: ${error.message}`, { cause: error });
   }
-  if (raw.startsWith("'") && raw.endsWith("'")) return raw.slice(1, -1).replaceAll("''", "'");
-  if (raw === "true") return true;
-  if (raw === "false") return false;
-  return raw;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${label} must be a YAML mapping`);
+  }
+  return value;
 }
 
 const escapeHtml = (value) => String(value)
@@ -40,76 +54,31 @@ const escapeHtml = (value) => String(value)
   .replaceAll('"', "&quot;")
   .replaceAll("'", "&#039;");
 
+const escapeXml = (value) => escapeHtml(value);
+const jsonForHtml = (value) => JSON.stringify(value)
+  .replaceAll("<", "\\u003c")
+  .replaceAll("\u2028", "\\u2028")
+  .replaceAll("\u2029", "\\u2029");
+
 function resolveMarkdownHref(href, slug) {
   if (/^(https?:|mailto:|#)/.test(href)) return href;
   const relative = href.replace(/^\.\//, "");
   return `${repositoryUrl}/blob/main/skills/${slug}/${relative}`;
 }
 
-function renderInline(value, slug) {
-  return escapeHtml(value)
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, href) => `<a href="${escapeHtml(resolveMarkdownHref(href, slug))}">${label}</a>`);
-}
-
-function renderMarkdown(markdown, slug) {
-  const lines = markdown.split("\n");
-  const out = [];
-  let list = null;
-  let inCode = false;
-  let code = [];
-
-  const closeList = () => {
-    if (list) out.push(`</${list}>`);
-    list = null;
-  };
-
-  for (const line of lines) {
-    if (line.startsWith("```")) {
-      if (inCode) {
-        out.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-        code = [];
-        inCode = false;
-      } else {
-        closeList();
-        inCode = true;
-      }
-      continue;
-    }
-    if (inCode) {
-      code.push(line);
-      continue;
-    }
-    if (!line.trim()) {
-      closeList();
-      continue;
-    }
-    const heading = line.match(/^(#{1,3})\s+(.+)$/);
-    if (heading) {
-      closeList();
-      const level = heading[1].length;
-      out.push(`<h${level}>${renderInline(heading[2], slug)}</h${level}>`);
-      continue;
-    }
-    const bullet = line.match(/^[-*]\s+(.+)$/);
-    if (bullet) {
-      if (list !== "ul") { closeList(); list = "ul"; out.push("<ul>"); }
-      out.push(`<li>${renderInline(bullet[1], slug)}</li>`);
-      continue;
-    }
-    const numbered = line.match(/^\d+\.\s+(.+)$/);
-    if (numbered) {
-      if (list !== "ol") { closeList(); list = "ol"; out.push("<ol>"); }
-      out.push(`<li>${renderInline(numbered[1], slug)}</li>`);
-      continue;
-    }
-    closeList();
-    out.push(`<p>${renderInline(line, slug)}</p>`);
+const markdown = new MarkdownIt({ html: false, linkify: false, typographer: false });
+const defaultLinkOpen = markdown.renderer.rules.link_open;
+markdown.renderer.rules.link_open = (tokens, index, options, env, self) => {
+  const hrefIndex = tokens[index].attrIndex("href");
+  if (hrefIndex >= 0 && env?.slug) {
+    tokens[index].attrs[hrefIndex][1] = resolveMarkdownHref(tokens[index].attrs[hrefIndex][1], env.slug);
   }
-  closeList();
-  if (inCode) out.push(`<pre><code>${escapeHtml(code.join("\n"))}</code></pre>`);
-  return out.join("\n");
+  if (defaultLinkOpen) return defaultLinkOpen(tokens, index, options, env, self);
+  return self.renderToken(tokens, index, options);
+};
+
+function renderMarkdown(source, slug) {
+  return markdown.render(source, { slug });
 }
 
 function renderSkillPage(skill) {
@@ -119,13 +88,32 @@ function renderSkillPage(skill) {
     : "Explicit invocation only";
   const sourceUrl = `${repositoryUrl}/blob/main/${skill.source}`;
   const agentUrl = `${repositoryUrl}/blob/main/${skill.agentSource}`;
+  const canonicalUrl = `${publicUrl}/skills/${encodeURIComponent(skill.slug)}/`;
+  const localization = {
+    en: {
+      description: skill.description,
+      prompt: skill.defaultPrompt
+    },
+    zh: {
+      description: skill.localized["zh-CN"].description,
+      prompt: skill.localized["zh-CN"].examplePrompt
+    }
+  };
+
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="${escapeHtml(skill.shortDescription)}">
+  <meta name="theme-color" content="${escapeHtml(skill.brandColor)}">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="${escapeHtml(skill.displayName)} — Agent Skills">
+  <meta property="og:description" content="${escapeHtml(skill.shortDescription)}">
+  <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
+  <meta name="twitter:card" content="summary">
   <title>${escapeHtml(skill.displayName)} — Agent Skills</title>
+  <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="skill-page" style="--skill-accent: ${escapeHtml(skill.brandColor)}">
@@ -135,6 +123,10 @@ function renderSkillPage(skill) {
       <a href="/#catalog">Catalog</a>
       <a href="/#usage">How to use</a>
       <a href="${repositoryUrl}">GitHub ↗</a>
+      <div role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+        <button class="button" type="button" data-lang="en">EN</button>
+        <button class="button" type="button" data-lang="zh">中文</button>
+      </div>
     </nav>
   </header>
 
@@ -143,7 +135,7 @@ function renderSkillPage(skill) {
       <a class="breadcrumb" href="/">← Back to catalog</a>
       <p class="eyebrow">$${escapeHtml(skill.slug)}</p>
       <h1>${escapeHtml(skill.displayName)}</h1>
-      <p class="detail-description">${escapeHtml(skill.description)}</p>
+      <p id="skill-description" class="detail-description">${escapeHtml(skill.description)}</p>
       <div class="detail-meta">
         <span class="pill">${escapeHtml(implicit)}</span>
         <span class="pill">Config: <code>agents/openai.yaml</code></span>
@@ -201,33 +193,74 @@ function renderSkillPage(skill) {
     <span>Generated from <code>${escapeHtml(skill.source)}</code> and <code>${escapeHtml(skill.agentSource)}</code>.</span>
     <a href="${repositoryUrl}">View repository ↗</a>
   </footer>
+  <script src="/lang.js"></script>
+  <script type="application/json" id="skill-localization">${jsonForHtml(localization)}</script>
   <script src="/detail.js" defer></script>
 </body>
 </html>
 `;
 }
 
+function renderSitemap(skills) {
+  const urls = [
+    `${publicUrl}/`,
+    ...skills.map((skill) => `${publicUrl}/skills/${encodeURIComponent(skill.slug)}/`)
+  ];
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((url) => `  <url><loc>${escapeXml(url)}</loc></url>`).join("\n")}\n</urlset>\n`;
+}
+
+const localization = JSON.parse(await readFile(localizationFile, "utf8"));
+if (localization.locale !== "zh-CN" || !localization.skills || typeof localization.skills !== "object" || Array.isArray(localization.skills)) {
+  throw new Error(`${localizationFile} must define locale zh-CN and a skills mapping`);
+}
+
 const entries = await readdir(skillsDir, { withFileTypes: true });
+const skillEntries = entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name));
 const skills = [];
 
-for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))) {
+for (const entry of skillEntries) {
   const skillFile = path.join(skillsDir, entry.name, "SKILL.md");
   const agentFile = path.join(skillsDir, entry.name, "agents", "openai.yaml");
   const source = await readFile(skillFile, "utf8");
   const agentSource = await readFile(agentFile, "utf8");
   const { frontmatter, body } = parseFrontmatter(source);
-  if (!frontmatter.name || !frontmatter.description) throw new Error(`${skillFile} is missing name or description`);
+  const agent = parseYamlMapping(agentSource, agentFile);
 
-  const displayName = readYamlScalar(agentSource, "display_name");
-  const shortDescription = readYamlScalar(agentSource, "short_description");
-  const brandColor = readYamlScalar(agentSource, "brand_color");
-  const defaultPrompt = readYamlScalar(agentSource, "default_prompt");
-  const allowImplicitInvocation = readYamlScalar(agentSource, "allow_implicit_invocation") === true;
-  if (!displayName || !shortDescription || !brandColor || !defaultPrompt) {
+  if (frontmatter.name !== entry.name) throw new Error(`${skillFile} name must match directory ${entry.name}`);
+  if (typeof frontmatter.description !== "string" || !frontmatter.description.trim()) {
+    throw new Error(`${skillFile} is missing description`);
+  }
+  if (!body) throw new Error(`${skillFile} instructions are empty`);
+
+  const interfaceConfig = agent.interface;
+  const policyConfig = agent.policy ?? {};
+  if (!interfaceConfig || typeof interfaceConfig !== "object" || Array.isArray(interfaceConfig)) {
+    throw new Error(`${agentFile} is missing interface metadata`);
+  }
+
+  const displayName = interfaceConfig.display_name;
+  const shortDescription = interfaceConfig.short_description;
+  const brandColor = interfaceConfig.brand_color;
+  const defaultPrompt = interfaceConfig.default_prompt;
+  const allowImplicitInvocation = policyConfig.allow_implicit_invocation === true;
+  if (![displayName, shortDescription, brandColor, defaultPrompt].every((value) => typeof value === "string" && value.trim())) {
     throw new Error(`${agentFile} is missing required interface metadata`);
   }
   if (!/^#[0-9a-fA-F]{6}$/.test(brandColor)) throw new Error(`${agentFile} has an invalid brand_color`);
   if (!defaultPrompt.includes(`$${entry.name}`)) throw new Error(`${agentFile} default_prompt must explicitly invoke $${entry.name}`);
+
+  const zh = localization.skills[entry.name];
+  if (!zh || typeof zh !== "object" || Array.isArray(zh)) {
+    throw new Error(`${localizationFile} is missing localization for ${entry.name}`);
+  }
+  for (const field of ["shortDescription", "description", "examplePrompt"]) {
+    if (typeof zh[field] !== "string" || !zh[field].trim()) {
+      throw new Error(`${localizationFile} localization for ${entry.name} is missing ${field}`);
+    }
+  }
+  if (!zh.examplePrompt.includes(`$${entry.name}`)) {
+    throw new Error(`${localizationFile} examplePrompt for ${entry.name} must invoke $${entry.name}`);
+  }
 
   skills.push({
     slug: entry.name,
@@ -240,19 +273,27 @@ for (const entry of entries.filter((item) => item.isDirectory()).sort((a, b) => 
     allowImplicitInvocation,
     body,
     source: `skills/${entry.name}/SKILL.md`,
-    agentSource: `skills/${entry.name}/agents/openai.yaml`
+    agentSource: `skills/${entry.name}/agents/openai.yaml`,
+    localized: { "zh-CN": zh }
   });
+}
+
+const expectedSlugs = skillEntries.map((entry) => entry.name).sort();
+const localizedSlugs = Object.keys(localization.skills).sort();
+if (JSON.stringify(expectedSlugs) !== JSON.stringify(localizedSlugs)) {
+  throw new Error(`${localizationFile} skill keys must exactly match skills/: expected ${expectedSlugs.join(", ")}; found ${localizedSlugs.join(", ")}`);
 }
 
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
 await cp(siteDir, distDir, { recursive: true });
-await writeFile(path.join(distDir, "skills.json"), `${JSON.stringify({ generatedAt: new Date().toISOString(), skills }, null, 2)}\n`);
+await writeFile(path.join(distDir, "skills.json"), `${JSON.stringify({ skills }, null, 2)}\n`);
 await writeFile(path.join(distDir, "health.json"), `${JSON.stringify({
   status: "ok",
   skills: skills.length,
   revision: process.env.DEPLOY_REVISION || process.env.GITHUB_SHA || "development"
 }, null, 2)}\n`);
+await writeFile(path.join(distDir, "sitemap.xml"), renderSitemap(skills));
 
 for (const skill of skills) {
   const detailDir = path.join(distDir, "skills", skill.slug);
@@ -260,4 +301,4 @@ for (const skill of skills) {
   await writeFile(path.join(detailDir, "index.html"), renderSkillPage(skill));
 }
 
-console.log(`Built Agent Skills catalog with ${skills.length} skill(s) and dedicated detail pages.`);
+console.log(`Built deterministic bilingual Agent Skills catalog with ${skills.length} skill(s).`);

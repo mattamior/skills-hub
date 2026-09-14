@@ -7,7 +7,12 @@ const html = await readFile("dist/index.html", "utf8");
 const app = await readFile("dist/app.js", "utf8");
 const detailScript = await readFile("dist/detail.js", "utf8");
 const languageScript = await readFile("dist/lang.js", "utf8");
+const sitemap = await readFile("dist/sitemap.xml", "utf8");
+const robots = await readFile("dist/robots.txt", "utf8");
+const headers = await readFile("dist/_headers", "utf8");
+const notFound = await readFile("dist/404.html", "utf8");
 
+if (Object.hasOwn(data, "generatedAt")) throw new Error("skills.json must remain deterministic and omit generatedAt");
 if (!Array.isArray(data.skills) || data.skills.length === 0) throw new Error("Gallery contains no skills");
 for (const skill of data.skills) {
   const required = ["name", "displayName", "shortDescription", "description", "brandColor", "defaultPrompt", "body", "source", "agentSource"];
@@ -21,19 +26,32 @@ for (const skill of data.skills) {
   if (!zh.examplePrompt.includes(`$${skill.slug}`)) throw new Error(`Chinese gallery example does not invoke ${skill.slug}`);
 
   const detail = await readFile(path.join("dist", "skills", skill.slug, "index.html"), "utf8");
+  const canonicalUrl = `https://skills-hub.hkooii.com/skills/${skill.slug}/`;
   if (!detail.includes(skill.displayName)) throw new Error(`Detail page title missing for ${skill.slug}`);
   if (!detail.includes(`./scripts/link-skills.sh ${skill.slug}`)) throw new Error(`Install command missing for ${skill.slug}`);
   if (!detail.includes(skill.source) || !detail.includes(skill.agentSource)) throw new Error(`Source provenance missing for ${skill.slug}`);
   if (!detail.includes('data-lang="en"') || !detail.includes('data-lang="zh"')) throw new Error(`Language switch missing for ${skill.slug}`);
-  if (!detail.includes(`https://skills-hub.hkooii.com/skills/${skill.slug}/`)) throw new Error(`Canonical detail URL missing for ${skill.slug}`);
+  if (!detail.includes(`<link rel="canonical" href="${canonicalUrl}">`)) throw new Error(`Canonical detail URL missing for ${skill.slug}`);
+  if (!detail.includes(`<meta property="og:url" content="${canonicalUrl}">`)) throw new Error(`Open Graph URL missing for ${skill.slug}`);
   if (!detail.includes('id="skill-localization"') || !detail.includes('/lang.js')) throw new Error(`Localized detail payload missing for ${skill.slug}`);
+  if (!detail.includes(`${skill.source.replace("SKILL.md", "references/")}`) && skill.body.includes("references/")) {
+    throw new Error(`Rendered Markdown references are not linked to repository source for ${skill.slug}`);
+  }
+  if (!sitemap.includes(`<loc>${canonicalUrl}</loc>`)) throw new Error(`Sitemap is missing ${skill.slug}`);
 }
+
 if (health.status !== "ok" || health.skills !== data.skills.length) throw new Error("Health metadata does not match gallery data");
 if (!html.includes("Agent Skills") || !html.includes("skills.json") || !html.includes('id="usage"')) throw new Error("Gallery shell is missing required content hooks");
 if (!html.includes('<link rel="canonical" href="https://skills-hub.hkooii.com/">')) throw new Error("Gallery canonical URL is missing or stale");
+if (!html.includes('property="og:title"') || !html.includes('name="twitter:card"')) throw new Error("Gallery social metadata is missing");
 if (!html.includes('data-lang="en"') || !html.includes('data-lang="zh"')) throw new Error("Gallery language switch is missing");
 if (!app.includes("/skills/") || !app.includes('localized?.["zh-CN"]')) throw new Error("Catalog cards are not wired to localized skill detail pages");
 if (!detailScript.includes("#skill-localization") || !detailScript.includes("skillsHubLanguage")) throw new Error("Detail pages are not wired to the language runtime");
 if (!languageScript.includes("skills-hub-language") || !languageScript.includes("localStorage")) throw new Error("Language preference persistence is missing");
+if (!sitemap.includes("https://skills-hub.hkooii.com/")) throw new Error("Sitemap is missing the canonical root URL");
+if (!robots.includes("Sitemap: https://skills-hub.hkooii.com/sitemap.xml")) throw new Error("robots.txt is missing the canonical sitemap URL");
+if (!headers.includes("X-Frame-Options: DENY") || !headers.includes("Permissions-Policy:")) throw new Error("Cloudflare Pages security headers are incomplete");
+if (!headers.includes("https://skills-hub-ea7.pages.dev/*") || !headers.includes("X-Robots-Tag: noindex")) throw new Error("Provider Pages URL is not excluded from indexing");
+if (!notFound.includes("Page not found") || !notFound.includes('data-lang="zh"')) throw new Error("Bilingual 404 page is incomplete");
 
-console.log(`Verified bilingual catalog output for ${data.skills.length} skill(s), including localized summaries, prompts, and detail pages.`);
+console.log(`Verified deterministic bilingual catalog output for ${data.skills.length} skill(s), including SEO, security metadata, and detail pages.`);

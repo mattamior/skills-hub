@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://skills-hub.hkooii.com/sitemap.xml

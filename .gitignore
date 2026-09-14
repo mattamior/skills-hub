@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .skills-ref/
+node_modules/
+dist/
+.wrangler/

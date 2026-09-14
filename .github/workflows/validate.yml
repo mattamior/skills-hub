@@ -43,16 +43,27 @@ jobs:
       - name: Exercise symbolic-link installer
         shell: bash
         run: |
+          set -euo pipefail
           bash -n scripts/link-skills.sh
+
           target_dir="${RUNNER_TEMP}/agent-skills-target"
           mkdir -p "${target_dir}"
-          ./scripts/link-skills.sh --check --target "${target_dir}" brand-design-system
-          ./scripts/link-skills.sh --target "${target_dir}" brand-design-system
-          ./scripts/link-skills.sh --target "${target_dir}" brand-design-system
-          test "$(readlink "${target_dir}/brand-design-system")" = "${GITHUB_WORKSPACE}/skills/brand-design-system"
-          unlink "${target_dir}/brand-design-system"
-          touch "${target_dir}/brand-design-system"
-          if ./scripts/link-skills.sh --target "${target_dir}" brand-design-system; then
+
+          mapfile -t skills < <(find skills -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)
+          test "${#skills[@]}" -gt 0
+
+          ./scripts/link-skills.sh --check --target "${target_dir}"
+          ./scripts/link-skills.sh --target "${target_dir}"
+          ./scripts/link-skills.sh --target "${target_dir}"
+
+          for skill in "${skills[@]}"; do
+            test "$(readlink "${target_dir}/${skill}")" = "${GITHUB_WORKSPACE}/skills/${skill}"
+          done
+
+          collision_skill="${skills[0]}"
+          unlink "${target_dir}/${collision_skill}"
+          touch "${target_dir}/${collision_skill}"
+          if ./scripts/link-skills.sh --target "${target_dir}"; then
             printf 'collision test unexpectedly succeeded\n' >&2
             exit 1
           fi

@@ -161,13 +161,15 @@ jobs:
             exit 1
           fi
 
+          local_skill_count="$(jq '.skills | length' dist/skills.json)"
+
           validate_site() {
             local base="${1%/}"
             local label="$2"
             local health remote_skills
             health="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "${base}/health.json")" || return 1
-            printf '%s' "$health" | jq -e --arg revision "$REVISION" \
-              '.status == "ok" and .revision == $revision and .skills >= 2' >/dev/null || return 1
+            printf '%s' "$health" | jq -e --arg revision "$REVISION" --argjson skills "$local_skill_count" \
+              '.status == "ok" and .revision == $revision and .skills == $skills' >/dev/null || return 1
             curl --fail --silent --show-error --connect-timeout 10 --max-time 20 "${base}/" \
               | grep -F 'Agent Skills' >/dev/null || return 1
             remote_skills="$(mktemp)"
@@ -175,8 +177,6 @@ jobs:
               | jq -S . > "$remote_skills" || return 1
             jq -S . dist/skills.json > local-skills.json
             diff -u local-skills.json "$remote_skills" || return 1
-            jq -e '.skills | map(.slug) | index("brand-design-system") != null' "$remote_skills" >/dev/null || return 1
-            jq -e '.skills | map(.slug) | index("pet-avatar-generation") != null' "$remote_skills" >/dev/null || return 1
             echo "Accepted ${label}: ${base}"
           }
 

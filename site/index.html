@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta id="meta-description" name="description"
-    content="A browsable catalog of reusable Agent Skills for ChatGPT and Codex, with install and invocation guidance."
-    data-content-en="A browsable catalog of reusable Agent Skills for ChatGPT and Codex, with install and invocation guidance."
-    data-content-zh="面向 ChatGPT 与 Codex 的可复用 Agent Skills 目录，提供安装与调用说明。">
-  <meta name="theme-color" content="#111111">
+    content="Reusable, source-backed Agent Skills for ChatGPT and Codex, with install guidance and ready-to-use invocations."
+    data-content-en="Reusable, source-backed Agent Skills for ChatGPT and Codex, with install guidance and ready-to-use invocations."
+    data-content-zh="面向 ChatGPT 与 Codex 的可复用、可追溯 Agent Skills，提供安装说明与可直接使用的调用示例。">
+  <meta name="theme-color" content="#090a09">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Agent Skills — mattamior">
-  <meta property="og:description" content="A repository-first catalog of reusable Agent Skills for ChatGPT and Codex.">
+  <meta property="og:description" content="Reusable, source-backed Agent Skills for ChatGPT and Codex.">
   <meta property="og:url" content="https://skills-hub.hkooii.com/">
   <meta name="twitter:card" content="summary">
   <title data-en="Agent Skills — mattamior" data-zh="Agent Skills — mattamior">Agent Skills — mattamior</title>
@@ -18,34 +18,74 @@
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content" data-en="Skip to content" data-zh="跳到主要内容">Skip to content</a>
+
   <header class="shell topbar">
     <a class="wordmark" href="/" aria-label="Agent Skills home" data-aria-en="Agent Skills home" data-aria-zh="Agent Skills 首页">Agent Skills<span>.</span></a>
     <nav aria-label="Primary navigation" data-aria-en="Primary navigation" data-aria-zh="主导航">
       <a href="#catalog" data-en="Catalog" data-zh="技能目录">Catalog</a>
       <a href="#usage" data-en="How to use" data-zh="如何使用">How to use</a>
-      <a href="https://github.com/mattamior/skills-hub">GitHub ↗</a>
-      <div role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+      <a class="nav-github" href="https://github.com/mattamior/skills-hub">GitHub <span aria-hidden="true">↗</span></a>
+      <div class="language-switch" role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
         <button class="button" type="button" data-lang="en">EN</button>
         <button class="button" type="button" data-lang="zh">中文</button>
       </div>
     </nav>
   </header>
 
-  <main class="shell">
-    <section class="hero">
-      <p class="eyebrow">mattamior / skills-hub</p>
-      <h1><span data-en="Reusable skills for" data-zh="可复用的 Skills，">Reusable skills for</span><br><em data-en="serious agent work." data-zh="服务于严肃的 Agent 工作。">serious agent work.</em></h1>
-      <p class="lede"
-        data-en="A repository-first catalog of focused Agent Skills for ChatGPT and Codex. Compare the collection, open a dedicated skill page, copy the install command, and start with a ready-to-use invocation."
-        data-zh="一个以仓库为事实源的 Agent Skills 目录，面向 ChatGPT 与 Codex。你可以浏览集合、打开独立 Skill 详情页、复制安装命令，并直接使用可复制的调用示例。">A repository-first catalog of focused Agent Skills for ChatGPT and Codex. Compare the collection, open a dedicated skill page, copy the install command, and start with a ready-to-use invocation.</p>
-      <div class="hero-actions">
-        <a class="button button-primary" href="#catalog" data-en="Browse skills" data-zh="浏览 Skills">Browse skills</a>
-        <a class="button" href="#usage" data-en="How to use" data-zh="如何使用">How to use</a>
+  <main id="main-content" class="shell">
+    <section class="hero" aria-labelledby="hero-heading">
+      <div class="hero-layout">
+        <div class="hero-copy">
+          <div class="hero-badges" aria-label="Catalog qualities" data-aria-en="Catalog qualities" data-aria-zh="目录特点">
+            <span class="status-badge"><i aria-hidden="true"></i><span data-en="Curated repository" data-zh="精选仓库">Curated repository</span></span>
+            <span class="quiet-badge">ChatGPT + Codex</span>
+          </div>
+          <p class="eyebrow">mattamior / skills-hub</p>
+          <h1 id="hero-heading"><span data-en="Reusable workflows." data-zh="可复用的工作流，">Reusable workflows.</span><br><em data-en="Built for agent work." data-zh="为 Agent 工作而生。">Built for agent work.</em></h1>
+          <p class="lede"
+            data-en="Focused Agent Skills for ChatGPT and Codex. Each skill is versioned in Git, installable for Codex, bilingual in the catalog, and validated before it reaches production."
+            data-zh="面向 ChatGPT 与 Codex 的聚焦型 Agent Skills。每个 Skill 都在 Git 中版本化，可安装到 Codex，目录支持中英文，并在进入生产环境前完成自动验证。">Focused Agent Skills for ChatGPT and Codex. Each skill is versioned in Git, installable for Codex, bilingual in the catalog, and validated before it reaches production.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#catalog"><span data-en="Explore skills" data-zh="浏览 Skills">Explore skills</span><span aria-hidden="true">↓</span></a>
+            <a class="button" href="https://github.com/mattamior/skills-hub"><span data-en="View repository" data-zh="查看仓库">View repository</span><span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="How the catalog stays trustworthy" data-aria-en="How the catalog stays trustworthy" data-aria-zh="目录如何保持可信">
+          <div class="hero-panel-head">
+            <span class="panel-status"><i aria-hidden="true"></i><span data-en="Repository-backed" data-zh="仓库驱动">Repository-backed</span></span>
+            <span class="panel-version">main</span>
+          </div>
+          <dl class="hero-panel-grid">
+            <div>
+              <dt data-en="Products" data-zh="产品">Products</dt>
+              <dd>ChatGPT · Codex</dd>
+            </div>
+            <div>
+              <dt data-en="Languages" data-zh="语言">Languages</dt>
+              <dd>EN · 简中</dd>
+            </div>
+            <div>
+              <dt data-en="Delivery" data-zh="交付">Delivery</dt>
+              <dd data-en="Validated CI" data-zh="CI 验证">Validated CI</dd>
+            </div>
+            <div>
+              <dt data-en="License" data-zh="许可证">License</dt>
+              <dd>Apache-2.0</dd>
+            </div>
+          </dl>
+          <div class="source-flow" aria-label="Source to production flow" data-aria-en="Source to production flow" data-aria-zh="从源文件到生产环境的流程">
+            <span>SKILL.md</span><b aria-hidden="true">→</b><span data-en="Build" data-zh="构建">Build</span><b aria-hidden="true">→</b><span data-en="Test" data-zh="测试">Test</span><b aria-hidden="true">→</b><span data-en="Deploy" data-zh="部署">Deploy</span>
+          </div>
+        </aside>
       </div>
+
       <div class="stats" aria-live="polite">
         <div><strong id="skill-count">—</strong><span data-en="skills" data-zh="个 Skills">skills</span></div>
+        <div><strong>2</strong><span data-en="products" data-zh="个产品">products</span></div>
+        <div><strong>EN / 简中</strong><span data-en="languages" data-zh="语言">languages</span></div>
         <div><strong>Apache-2.0</strong><span data-en="license" data-zh="许可证">license</span></div>
-        <div><strong>Repository-first</strong><span data-en="source of truth" data-zh="单一事实来源">source of truth</span></div>
       </div>
     </section>
 
@@ -53,41 +93,66 @@
       <div class="catalog-head">
         <div>
           <p class="eyebrow" data-en="Catalog" data-zh="技能目录">Catalog</p>
-          <h2 id="catalog-heading" data-en="Explore the collection" data-zh="浏览技能集合">Explore the collection</h2>
+          <h2 id="catalog-heading" data-en="Choose the workflow, not the prompt." data-zh="选择工作流，而不只是提示词。">Choose the workflow, not the prompt.</h2>
+          <p class="catalog-lede" data-en="Every entry links back to its operating contract, install path, and default invocation."
+            data-zh="每个条目都可追溯到它的工作契约、安装路径与默认调用方式。">Every entry links back to its operating contract, install path, and default invocation.</p>
         </div>
-        <label class="search">
-          <span class="sr-only" data-en="Search skills" data-zh="搜索 Skills">Search skills</span>
-          <input id="search" type="search" placeholder="Search skills…" data-placeholder-en="Search skills…" data-placeholder-zh="搜索 Skills…" autocomplete="off">
-        </label>
+        <div class="catalog-tools">
+          <p id="catalog-status" class="catalog-status" aria-live="polite">Loading skills…</p>
+          <label class="search">
+            <span class="sr-only" data-en="Search skills" data-zh="搜索 Skills">Search skills</span>
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input id="search" type="search" placeholder="Search skills…" data-placeholder-en="Search skills…" data-placeholder-zh="搜索 Skills…" autocomplete="off" aria-describedby="search-hint">
+            <kbd class="search-shortcut" aria-hidden="true">/</kbd>
+            <button id="search-clear" class="search-clear" type="button" hidden aria-label="Clear search" data-aria-en="Clear search" data-aria-zh="清除搜索">×</button>
+          </label>
+          <span id="search-hint" class="sr-only" data-en="Press slash to focus search. Press Escape to clear it." data-zh="按斜杠聚焦搜索，按 Escape 清除搜索。">Press slash to focus search. Press Escape to clear it.</span>
+        </div>
       </div>
       <div id="skill-grid" class="skill-grid" aria-live="polite"></div>
-      <p id="empty-state" class="empty" hidden data-en="No skills match that search." data-zh="没有匹配的 Skills。">No skills match that search.</p>
+      <div id="empty-state" class="empty" hidden>
+        <strong data-en="No matching skills" data-zh="没有匹配的 Skills">No matching skills</strong>
+        <span data-en="Try a broader keyword or clear the search." data-zh="尝试更宽泛的关键词，或清除搜索。">Try a broader keyword or clear the search.</span>
+      </div>
     </section>
 
     <section id="usage" class="usage" aria-labelledby="usage-heading">
       <div class="section-intro">
         <p class="eyebrow" data-en="Use a skill" data-zh="使用 Skill">Use a skill</p>
-        <h2 id="usage-heading" data-en="From discovery to invocation" data-zh="从发现到调用">From discovery to invocation</h2>
-        <p data-en="Each detail page is generated from the skill itself, so the catalog stays aligned with the repository instead of maintaining a second manual description."
-          data-zh="每个详情页都由 Skill 自身的数据生成，因此网站与仓库保持一致，不再维护第二份手工描述。">Each detail page is generated from the skill itself, so the catalog stays aligned with the repository instead of maintaining a second manual description.</p>
+        <h2 id="usage-heading" data-en="From discovery to invocation." data-zh="从发现到调用。">From discovery to invocation.</h2>
+        <p data-en="The catalog is generated from the same repository sources used by the agents, so discovery stays aligned with the actual operating contract."
+          data-zh="目录直接由 Agent 使用的同一套仓库源文件生成，因此发现体验始终与真实工作契约保持一致。">The catalog is generated from the same repository sources used by the agents, so discovery stays aligned with the actual operating contract.</p>
       </div>
       <div class="usage-steps">
         <article>
-          <span>01</span>
+          <span class="step-number">01</span>
           <h3 data-en="Choose a skill" data-zh="选择 Skill">Choose a skill</h3>
-          <p data-en="Open a catalog entry to review its scope, trigger contract, source instructions, and ready-to-use prompt."
-            data-zh="打开目录中的 Skill，查看适用范围、触发契约、源指令和可直接使用的提示词。">Open a catalog entry to review its scope, trigger contract, source instructions, and ready-to-use prompt.</p>
+          <p data-en="Review its scope, invocation policy, source instructions, and ready-to-use example."
+            data-zh="查看它的适用范围、调用策略、源指令与可直接使用的示例。">Review its scope, invocation policy, source instructions, and ready-to-use example.</p>
         </article>
         <article>
-          <span>02</span>
+          <span class="step-number">02</span>
           <h3 data-en="Install for Codex" data-zh="安装到 Codex">Install for Codex</h3>
-          <p><span data-en="Copy the skill-specific" data-zh="复制该 Skill 专用的">Copy the skill-specific</span> <code>link-skills.sh</code> <span data-en="command. A user-level install makes the skill available across Codex projects." data-zh="命令。安装到用户级后，它可在多个 Codex 项目中直接发现。">command. A user-level install makes the skill available across Codex projects.</span></p>
+          <p><span data-en="Copy the skill-specific" data-zh="复制该 Skill 专用的">Copy the skill-specific</span> <code>link-skills.sh</code> <span data-en="command to make it discoverable across Codex projects." data-zh="命令，使它能在多个 Codex 项目中被发现。">command to make it discoverable across Codex projects.</span></p>
         </article>
         <article>
-          <span>03</span>
-          <h3 data-en="Invoke it" data-zh="调用 Skill">Invoke it</h3>
-          <p><span data-en="Start a Codex request with" data-zh="在 Codex 请求开头使用">Start a Codex request with</span> <code>$skill-name</code><span data-en=", or select the matching skill in ChatGPT when the Skills picker is available." data-zh="，或者在 ChatGPT 的 Skills 选择器可用时选择对应 Skill。">, or select the matching skill in ChatGPT when the Skills picker is available.</span></p>
+          <span class="step-number">03</span>
+          <h3 data-en="Invoke with intent" data-zh="按意图调用">Invoke with intent</h3>
+          <p><span data-en="Start with" data-zh="从">Start with</span> <code>$skill-name</code><span data-en=" in Codex, or use the matching skill in ChatGPT when the Skills picker is available." data-zh=" 开始 Codex 请求，或者在 ChatGPT 的 Skills 选择器可用时选择对应 Skill。"> in Codex, or use the matching skill in ChatGPT when the Skills picker is available.</span></p>
         </article>
+      </div>
+    </section>
+
+    <section class="repo-cta" aria-labelledby="repo-heading">
+      <div>
+        <p class="eyebrow" data-en="Open source by design" data-zh="原生开源">Open source by design</p>
+        <h2 id="repo-heading" data-en="Inspect every instruction." data-zh="每条指令都可检查。">Inspect every instruction.</h2>
+        <p data-en="No black box catalog. Every public description, install command, and operating contract traces back to repository-managed source."
+          data-zh="这不是黑盒目录。每个公开描述、安装命令和工作契约都可以追溯到仓库管理的源文件。">No black box catalog. Every public description, install command, and operating contract traces back to repository-managed source.</p>
+      </div>
+      <div class="repo-cta-actions">
+        <a class="button button-primary" href="https://github.com/mattamior/skills-hub"><span data-en="Open GitHub" data-zh="打开 GitHub">Open GitHub</span><span aria-hidden="true">↗</span></a>
+        <a class="button" href="#catalog" data-en="Back to catalog" data-zh="返回技能目录">Back to catalog</a>
       </div>
     </section>
   </main>

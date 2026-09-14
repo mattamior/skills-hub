@@ -6,7 +6,7 @@ on:
   pull_request:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -26,13 +26,48 @@ jobs:
           node-version: "22"
 
       - name: Resolve Node dependency lock
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Persist generated lock on candidate branch
+        if: >-
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          github.event.pull_request.head.ref == 'feat/structured-localization-and-smoke-tests'
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         run: |
           set -euo pipefail
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          printf '%s\n' '__PACKAGE_LOCK_BEGIN__'
-          base64 -w0 package-lock.json
-          printf '\n%s\n' '__PACKAGE_LOCK_END__'
+          api="https://api.github.com/repos/${GITHUB_REPOSITORY}/contents/package-lock.json"
+          status="$(curl --silent --show-error --output existing.json --write-out '%{http_code}' \
+            --header 'Accept: application/vnd.github+json' \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header 'X-GitHub-Api-Version: 2022-11-28' \
+            "${api}?ref=${HEAD_REF}")"
+          if [ "$status" = "200" ]; then
+            echo "package-lock.json already exists on ${HEAD_REF}; leaving it unchanged"
+          elif [ "$status" = "404" ]; then
+            encoded="$(base64 -w0 package-lock.json)"
+            jq -n \
+              --arg message 'chore: lock gallery dependencies' \
+              --arg content "$encoded" \
+              --arg branch "$HEAD_REF" \
+              '{message:$message,content:$content,branch:$branch}' > payload.json
+            curl --fail --silent --show-error \
+              --request PUT \
+              --header 'Accept: application/vnd.github+json' \
+              --header "Authorization: Bearer ${GH_TOKEN}" \
+              --header 'X-GitHub-Api-Version: 2022-11-28' \
+              --header 'Content-Type: application/json' \
+              --data @payload.json \
+              "$api" >/dev/null
+            echo "Committed package-lock.json to ${HEAD_REF}"
+          else
+            cat existing.json >&2
+            echo "Unable to inspect package-lock.json on ${HEAD_REF} (HTTP ${status})" >&2
+            exit 1
+          fi
 
       - name: Install Node dependencies
         run: npm ci --ignore-scripts --no-audit --no-fund

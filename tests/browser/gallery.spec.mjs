@@ -1,24 +1,37 @@
 import { expect, test } from "@playwright/test";
 
-test("catalog search and language preference work in a real browser", async ({ page }) => {
+test("catalog discovery, search shortcuts, and language preference work in a real browser", async ({ page }) => {
   await page.goto("/");
   const catalog = await page.evaluate(async () => (await fetch("/skills.json")).json());
 
   await expect(page.locator("#skill-count")).toHaveText(String(catalog.skills.length));
   await expect(page.locator(".skill-card")).toHaveCount(catalog.skills.length);
+  await expect(page.locator("#catalog-status")).toHaveText(`Showing ${catalog.skills.length} of ${catalog.skills.length} skills`);
+  await expect(page.locator(".policy-badge")).toHaveCount(catalog.skills.length);
+  await expect(page.locator(".product-chip")).toHaveCount(catalog.skills.length);
 
+  await page.keyboard.press("/");
+  await expect(page.locator("#search")).toBeFocused();
   await page.locator("#search").fill("pet-avatar-generation");
   await expect(page.locator(".skill-card")).toHaveCount(1);
   await expect(page.locator(".skill-card")).toContainText("Pet Avatar Generation");
+  await expect(page.locator("#catalog-status")).toHaveText(`Showing 1 of ${catalog.skills.length} skills`);
+  await expect(page.locator("#search-clear")).toBeVisible();
+
+  await page.locator("#search-clear").click();
+  await expect(page.locator(".skill-card")).toHaveCount(catalog.skills.length);
+  await expect(page.locator("#search")).toHaveValue("");
 
   await page.getByRole("button", { name: "中文" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await expect(page.locator("#search")).toHaveAttribute("placeholder", "搜索 Skills…");
+  await expect(page.locator("#catalog-status")).toHaveText(`显示 ${catalog.skills.length} / ${catalog.skills.length} 个 Skills`);
   expect(await page.evaluate(() => localStorage.getItem("skills-hub-language"))).toBe("zh");
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "zh-CN");
   await expect(page.locator("#search")).toHaveAttribute("placeholder", "搜索 Skills…");
+  await expect(page.locator(".hero-panel")).toBeVisible();
 });
 
 test("skill detail localizes and copy interaction preserves the invocation", async ({ page, context }) => {

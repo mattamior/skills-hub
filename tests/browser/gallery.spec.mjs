@@ -25,7 +25,7 @@ test("skill detail localizes and copy interaction preserves the invocation", asy
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://127.0.0.1:4173" });
   await page.goto("/skills/pet-avatar-generation/");
 
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Pet Avatar Generation");
+  await expect(page.locator(".detail-hero h1")).toHaveText("Pet Avatar Generation");
   await expect(page.locator("#skill-description")).toContainText("Create or refine stylized avatar images");
   await expect(page.locator("article.markdown")).toContainText("Preserve pet identity");
 

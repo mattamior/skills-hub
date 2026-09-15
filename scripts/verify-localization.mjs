@@ -47,8 +47,8 @@ for (const slug of skillSlugs) {
       throw new Error(`${localizationPath} ${slug} is missing ${field}`);
     }
   }
-  if (!entry.examplePrompt.includes(`$${slug}`) || !entry.bodyMarkdown.includes(`$${slug}`)) {
-    throw new Error(`${localizationPath} ${slug} invocation copy must invoke $${slug}`);
+  if (!entry.examplePrompt.includes(`$${slug}`)) {
+    throw new Error(`${localizationPath} ${slug} examplePrompt must invoke $${slug}`);
   }
   if (!entry.bodyMarkdown.startsWith(`# ${entry.displayName}\n`)) {
     throw new Error(`${localizationPath} ${slug} bodyMarkdown must start with its localized displayName`);
@@ -57,6 +57,9 @@ for (const slug of skillSlugs) {
   const sourcePath = path.join(root, "skills", slug, "SKILL.md");
   const source = await readFile(sourcePath, "utf8");
   const { body } = parseSkillSource(source, sourcePath);
+  if (body.includes(`$${slug}`) && !entry.bodyMarkdown.includes(`$${slug}`)) {
+    throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve the canonical explicit invocation`);
+  }
   const englishH2 = countMatches(body, /^##\s+/gm);
   const chineseH2 = countMatches(entry.bodyMarkdown, /^##\s+/gm);
   if (englishH2 !== chineseH2) {

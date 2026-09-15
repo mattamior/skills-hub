@@ -150,93 +150,7 @@ jobs:
           fi
 
           jq -e --arg domain "$DOMAIN" '.success == true and .result.name == $domain' domain.json >/dev/null
-          zone_tag="$(jq -r '.result.zone_tag // empty' domain.json)"
-          if [ -z "$zone_tag" ]; then
-            cat domain.json >&2
-            echo "Cloudflare Pages custom domain did not expose a zone_tag for DNS provisioning" >&2
-            exit 1
-          fi
           echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
-          echo "zone_tag=${zone_tag}" >> "$GITHUB_OUTPUT"
-
-      - name: Ensure canonical Cloudflare DNS record
-        shell: bash
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          DOMAIN: ${{ steps.canonical_domain.outputs.domain }}
-          ZONE_ID: ${{ steps.canonical_domain.outputs.zone_tag }}
-          PRODUCTION_URL: ${{ steps.pages.outputs.production_url }}
-        run: |
-          set -euo pipefail
-          TARGET="${PRODUCTION_URL#https://}"
-          DNS_API="https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records"
-          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
-
-          status="$(curl --silent --show-error --output dns-records.json --write-out '%{http_code}' \
-            --get \
-            --header "$AUTH" \
-            --data-urlencode "name=${DOMAIN}" \
-            "$DNS_API")"
-          if [ "$status" != "200" ]; then
-            cat dns-records.json >&2
-            echo "Unable to read DNS records for ${DOMAIN} (HTTP $status). The production token needs DNS Read or DNS Write on zone ${ZONE_ID}." >&2
-            exit 1
-          fi
-          jq -e '.success == true' dns-records.json >/dev/null
-
-          record_count="$(jq '.result | length' dns-records.json)"
-          if [ "$record_count" -gt 1 ]; then
-            cat dns-records.json >&2
-            echo "Multiple DNS records already exist for ${DOMAIN}; refusing to choose one implicitly" >&2
-            exit 1
-          fi
-
-          payload="$(jq -nc \
-            --arg name "$DOMAIN" \
-            --arg content "$TARGET" \
-            '{type:"CNAME", name:$name, content:$content, ttl:1, proxied:true, comment:"Managed by mattamior/skills-hub production workflow"}')"
-
-          if [ "$record_count" -eq 0 ]; then
-            status="$(curl --silent --show-error --output dns-write.json --write-out '%{http_code}' \
-              --request POST \
-              --header "$AUTH" \
-              --header 'Content-Type: application/json' \
-              --data "$payload" \
-              "$DNS_API")"
-            if [ "$status" != "200" ]; then
-              cat dns-write.json >&2
-              echo "Unable to create the canonical CNAME (HTTP $status). The production token needs DNS Write on zone ${ZONE_ID}." >&2
-              exit 1
-            fi
-          else
-            record_type="$(jq -r '.result[0].type' dns-records.json)"
-            record_id="$(jq -r '.result[0].id' dns-records.json)"
-            current_content="$(jq -r '.result[0].content' dns-records.json)"
-            current_proxied="$(jq -r '.result[0].proxied // false' dns-records.json)"
-            if [ "$record_type" != "CNAME" ]; then
-              cat dns-records.json >&2
-              echo "${DOMAIN} already has a ${record_type} record; refusing to replace it with a CNAME automatically" >&2
-              exit 1
-            fi
-            if [ "$current_content" != "$TARGET" ] || [ "$current_proxied" != "true" ]; then
-              status="$(curl --silent --show-error --output dns-write.json --write-out '%{http_code}' \
-                --request PUT \
-                --header "$AUTH" \
-                --header 'Content-Type: application/json' \
-                --data "$payload" \
-                "${DNS_API}/${record_id}")"
-              if [ "$status" != "200" ]; then
-                cat dns-write.json >&2
-                echo "Unable to update the canonical CNAME (HTTP $status). The production token needs DNS Write on zone ${ZONE_ID}." >&2
-                exit 1
-              fi
-            else
-              cp dns-records.json dns-write.json
-            fi
-          fi
-
-          jq -e '.success == true' dns-write.json >/dev/null
-          echo "Canonical DNS accepted: ${DOMAIN} -> ${TARGET}"
 
       - name: Deploy exact revision to Cloudflare Pages
         id: deploy_pages
@@ -301,6 +215,7 @@ jobs:
           if [ "$domain_status" != "active" ]; then
             cat domain.json >&2
             echo "Canonical Pages domain did not become active: ${PUBLIC_HOST}" >&2
+            echo "Required external DNS: CNAME skills-hub.lapplax.com -> ${PRODUCTION_URL#https://}" >&2
             exit 1
           fi
 

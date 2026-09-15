@@ -16,11 +16,12 @@ provider:
     production_verification: true
     provisioning:
       pages: true
+      dns: true
   credentials:
     - name: CLOUDFLARE_API_TOKEN
       store: github-environment-secret
       environment: production
-      minimum_scope: Cloudflare Pages Edit for the target account
+      minimum_scope: Cloudflare Pages Edit for the target account plus DNS Write for the lapplax.com zone
     - name: CLOUDFLARE_ACCOUNT_ID
       store: github-environment-secret
       environment: production
@@ -31,8 +32,8 @@ provider:
     verification_path: /health.json
     canonical_url: https://skills-hub.lapplax.com/
 trust_boundaries:
-  - create and scope the Cloudflare API token to the target account with Cloudflare Pages Edit access
+  - create and scope the Cloudflare API token to the target account with Cloudflare Pages Edit access and DNS Write access for the lapplax.com zone
   - store CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the GitHub production environment
-  - allow the deployment workflow to associate the canonical Pages custom domain through the Cloudflare Pages API
-  - if lapplax.com is not managed in the same Cloudflare account, provide the required CNAME from skills-hub.lapplax.com to the project pages.dev hostname
+  - allow the deployment workflow to associate the canonical Pages custom domain and create or repair its managed CNAME record
+  - refuse to replace non-CNAME or ambiguous existing DNS records automatically
   - approve account-level or domain changes when required

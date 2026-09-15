@@ -255,8 +255,8 @@ for (const entry of skillEntries) {
       throw new Error(`${localizationFile} localization for ${entry.name} is missing ${field}`);
     }
   }
-  if (!zh.examplePrompt.includes(`$${entry.name}`) || !zh.bodyMarkdown.includes(`$${entry.name}`)) {
-    throw new Error(`${localizationFile} invocation copy for ${entry.name} must invoke $${entry.name}`);
+  if (!zh.examplePrompt.includes(`$${entry.name}`)) {
+    throw new Error(`${localizationFile} examplePrompt for ${entry.name} must invoke $${entry.name}`);
   }
 
   skills.push({

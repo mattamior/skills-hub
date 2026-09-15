@@ -1,5 +1,6 @@
 # Next Actions
 
+- Complete the `skills-hub.lapplax.com` cutover: validate the new managed DNS provisioning path with the production Cloudflare token, require the Pages custom domain to reach `active`, then confirm exact-revision production acceptance on the canonical hostname. If the token lacks DNS Write for `lapplax.com`, update that production credential before retrying.
 - Enable a lightweight GitHub ruleset for `main`: require the `Validate skills` check and block force-pushes and branch deletion without adding unnecessary approval overhead for this personal repository. The currently connected GitHub capability cannot mutate repository rulesets.
 - Clean up stale remote topic branches after confirming any intentionally retained history and when branch-ref deletion is available. This includes historical deployment branches and temporary structured-localization branches created during hardening.
 - Run an end-to-end `pet-avatar-generation` acceptance in ChatGPT when a usable real source pet image is present in the active conversation: explore materially distinct styles, select one direction, refine it, and request transparent-background output. Record only evidence-backed gaps that require a skill change.

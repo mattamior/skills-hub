@@ -121,6 +121,37 @@ jobs:
           echo "project_name=${PROJECT_NAME}" >> "$GITHUB_OUTPUT"
           echo "production_url=https://${subdomain}" >> "$GITHUB_OUTPUT"
 
+      - name: Ensure canonical Cloudflare Pages domain
+        id: canonical_domain
+        shell: bash
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          PROJECT_NAME: ${{ steps.pages.outputs.project_name }}
+        run: |
+          set -euo pipefail
+          DOMAIN="skills-hub.lapplax.com"
+          DOMAINS_API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT_NAME}/domains"
+          AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
+
+          status="$(curl --silent --show-error --output domain.json --write-out '%{http_code}' \
+            --header "$AUTH" "${DOMAINS_API}/${DOMAIN}")"
+          if [ "$status" = "404" ]; then
+            curl --fail --silent --show-error \
+              --request POST \
+              --header "$AUTH" \
+              --header 'Content-Type: application/json' \
+              --data "$(jq -nc --arg name "$DOMAIN" '{name: $name}')" \
+              "$DOMAINS_API" > domain.json
+          elif [ "$status" != "200" ]; then
+            cat domain.json >&2
+            echo "Unable to read Cloudflare Pages custom domain (HTTP $status)" >&2
+            exit 1
+          fi
+
+          jq -e --arg domain "$DOMAIN" '.success == true and .result.name == $domain' domain.json >/dev/null
+          echo "domain=${DOMAIN}" >> "$GITHUB_OUTPUT"
+
       - name: Deploy exact revision to Cloudflare Pages
         id: deploy_pages
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4
@@ -142,11 +173,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PROJECT_NAME: ${{ steps.pages.outputs.project_name }}
           PRODUCTION_URL: ${{ steps.pages.outputs.production_url }}
-          PUBLIC_URL: https://skills-hub.hkooii.com
+          PUBLIC_HOST: ${{ steps.canonical_domain.outputs.domain }}
+          PUBLIC_URL: https://${{ steps.canonical_domain.outputs.domain }}
           REVISION: ${{ steps.revision.outputs.sha }}
         run: |
           set -euo pipefail
           PROJECT_API="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT_NAME}"
+          DOMAIN_API="${PROJECT_API}/domains/${PUBLIC_HOST}"
           AUTH="Authorization: Bearer ${CLOUDFLARE_API_TOKEN}"
 
           deployment_url=""
@@ -162,6 +195,27 @@ jobs:
           if [ -z "$deployment_url" ]; then
             echo "Pages canonical deployment did not converge to revision $REVISION" >&2
             cat project.json >&2
+            exit 1
+          fi
+
+          domain_status=""
+          for attempt in $(seq 1 36); do
+            curl --fail --silent --show-error --header "$AUTH" "$DOMAIN_API" > domain.json
+            domain_status="$(jq -r '.result.status // empty' domain.json)"
+            if [ "$domain_status" = "active" ]; then
+              break
+            fi
+            if [ "$domain_status" = "error" ] || [ "$domain_status" = "blocked" ] || [ "$domain_status" = "deactivated" ]; then
+              cat domain.json >&2
+              echo "Canonical Pages domain entered terminal status: $domain_status" >&2
+              exit 1
+            fi
+            if [ "$attempt" -lt 36 ]; then sleep 5; fi
+          done
+          if [ "$domain_status" != "active" ]; then
+            cat domain.json >&2
+            echo "Canonical Pages domain did not become active: ${PUBLIC_HOST}" >&2
+            echo "If lapplax.com is not managed in this Cloudflare account, create a CNAME for skills-hub.lapplax.com pointing to ${PRODUCTION_URL#https://}." >&2
             exit 1
           fi
 

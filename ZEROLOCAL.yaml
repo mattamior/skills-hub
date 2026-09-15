@@ -29,7 +29,10 @@ provider:
     deployment_workflow: .github/workflows/deploy.yml
     revision_source: github.event.workflow_run.head_sha
     verification_path: /health.json
+    canonical_url: https://skills-hub.lapplax.com/
 trust_boundaries:
   - create and scope the Cloudflare API token to the target account with Cloudflare Pages Edit access
   - store CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in the GitHub production environment
+  - allow the deployment workflow to associate the canonical Pages custom domain through the Cloudflare Pages API
+  - if lapplax.com is not managed in the same Cloudflare account, provide the required CNAME from skills-hub.lapplax.com to the project pages.dev hostname
   - approve account-level or domain changes when required

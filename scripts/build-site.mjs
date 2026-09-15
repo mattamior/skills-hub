@@ -9,7 +9,7 @@ const siteDir = path.join(root, "site");
 const distDir = path.join(root, "dist");
 const localizationFile = path.join(root, "locales", "zh-CN.json");
 const repositoryUrl = "https://github.com/mattamior/skills-hub";
-const publicUrl = "https://skills-hub.hkooii.com";
+const publicUrl = "https://skills-hub.lapplax.com";
 
 function parseFrontmatter(source) {
   const lines = source.split(/\r?\n/);
@@ -114,7 +114,9 @@ function renderSkillPage(skill) {
   <meta name="twitter:card" content="summary">
   <title>${escapeHtml(skill.displayName)} — Agent Skills</title>
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
+  <script src="/theme.js"></script>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/theme.css">
 </head>
 <body class="skill-page" style="--skill-accent: ${escapeHtml(skill.brandColor)}">
   <header class="shell topbar">
@@ -122,8 +124,11 @@ function renderSkillPage(skill) {
     <nav aria-label="Primary navigation">
       <a href="/#catalog">Catalog</a>
       <a href="/#usage">How to use</a>
-      <a href="${repositoryUrl}">GitHub ↗</a>
-      <div role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+      <a class="nav-github" href="${repositoryUrl}">GitHub <span aria-hidden="true">↗</span></a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Use light mode" title="Use light mode">
+        <span data-theme-icon aria-hidden="true">☀</span>
+      </button>
+      <div class="language-switch" role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
         <button class="button" type="button" data-lang="en">EN</button>
         <button class="button" type="button" data-lang="zh">中文</button>
       </div>

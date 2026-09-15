@@ -2,7 +2,7 @@
 
 这是 `mattamior` 的个人 Agent Skills 集合，用于开发和维护可在 ChatGPT 与 Codex 中复用的工作流。仓库中的每个 skill 都独立存放在 `skills/<skill-name>/`，并以 `SKILL.md` 作为入口。
 
-线上画廊：[skills-hub.hkooii.com](https://skills-hub.hkooii.com/)
+线上画廊：[skills-hub.lapplax.com](https://skills-hub.lapplax.com/)
 
 ## Skills
 

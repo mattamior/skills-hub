@@ -4,17 +4,22 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#111111">
+  <meta name="theme-color" content="#090a09">
   <title>Page not found — Agent Skills</title>
+  <script src="/theme.js"></script>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/theme.css">
 </head>
 <body>
   <header class="shell topbar">
     <a class="wordmark" href="/" aria-label="Agent Skills home" data-aria-en="Agent Skills home" data-aria-zh="Agent Skills 首页">Agent Skills<span>.</span></a>
     <nav aria-label="Primary navigation" data-aria-en="Primary navigation" data-aria-zh="主导航">
       <a href="/" data-en="Catalog" data-zh="技能目录">Catalog</a>
-      <a href="https://github.com/mattamior/skills-hub">GitHub ↗</a>
-      <div role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
+      <a class="nav-github" href="https://github.com/mattamior/skills-hub">GitHub <span aria-hidden="true">↗</span></a>
+      <button class="theme-toggle" type="button" data-theme-toggle aria-label="Use light mode" title="Use light mode">
+        <span data-theme-icon aria-hidden="true">☀</span>
+      </button>
+      <div class="language-switch" role="group" aria-label="Language" data-aria-en="Language" data-aria-zh="语言">
         <button class="button" type="button" data-lang="en">EN</button>
         <button class="button" type="button" data-lang="zh">中文</button>
       </div>

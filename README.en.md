@@ -2,7 +2,7 @@
 
 This is `mattamior`'s collection for developing and maintaining reusable Agent Skills for ChatGPT and Codex. Each skill lives independently under `skills/<skill-name>/` and uses `SKILL.md` as its entry point.
 
-Public gallery: [skills-hub.hkooii.com](https://skills-hub.hkooii.com/)
+Public gallery: [skills-hub.lapplax.com](https://skills-hub.lapplax.com/)
 
 ## Skills
 

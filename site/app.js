@@ -58,19 +58,22 @@ function render(query = "") {
     skill.description,
     skill.defaultPrompt,
     skill.body,
+    skill.localized?.["zh-CN"]?.displayName,
     skill.localized?.["zh-CN"]?.shortDescription,
     skill.localized?.["zh-CN"]?.description,
-    skill.localized?.["zh-CN"]?.examplePrompt
+    skill.localized?.["zh-CN"]?.examplePrompt,
+    skill.localized?.["zh-CN"]?.bodyMarkdown
   ].filter(Boolean).join(" ").toLowerCase().includes(normalized));
 
   grid.replaceChildren();
   filtered.forEach((skill) => {
     const locale = localized(skill);
+    const displayName = locale.displayName || skill.displayName;
     const ordinal = skills.indexOf(skill) + 1;
     const card = document.createElement("a");
     card.className = "skill-card";
     card.href = `/skills/${encodeURIComponent(skill.slug)}/`;
-    card.setAttribute("aria-label", cardAriaLabel(skill.displayName));
+    card.setAttribute("aria-label", cardAriaLabel(displayName));
     card.style.setProperty("--skill-accent", skill.brandColor);
     card.innerHTML = `
       <div class="card-top">
@@ -79,7 +82,7 @@ function render(query = "") {
       </div>
       <div class="card-copy">
         <span class="card-slug">$${escapeHtml(skill.slug)}</span>
-        <h3>${escapeHtml(skill.displayName)}</h3>
+        <h3>${escapeHtml(displayName)}</h3>
         <p>${escapeHtml(locale.shortDescription || skill.shortDescription)}</p>
       </div>
       <div class="card-footer">

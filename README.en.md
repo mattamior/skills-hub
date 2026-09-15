@@ -46,7 +46,7 @@ When adding or changing a skill:
 1. Put it in `skills/<skill-name>/` and keep the directory name equal to the `name` in `SKILL.md`.
 2. Keep shared workflow and essential constraints in `SKILL.md`; put conditional detail in `references/` and output templates in `assets/`.
 3. Keep `agents/openai.yaml` aligned and include `$<skill-name>` explicitly in its default prompt.
-4. Add the Simplified Chinese catalog summary and invocation example to `locales/zh-CN.json`, then keep the matching formal copy in `README.zh.md` aligned.
+4. Add the Simplified Chinese display name, catalog summary, full scope description, invocation example, and complete website contract mirror to `locales/zh-CN.json`, then keep the matching formal summary and invocation copy in `README.zh.md` aligned.
 5. Run repository and site validation:
 
 ```bash
@@ -55,9 +55,9 @@ npm ci
 npm run check
 ```
 
-The gallery build reads `SKILL.md`, `agents/openai.yaml`, and `locales/zh-CN.json` directly. `README.zh.md` is validated against the structured localization source but is not parsed as build data.
+The gallery build reads `SKILL.md`, `agents/openai.yaml`, and `locales/zh-CN.json` directly. English `SKILL.md` remains the canonical agent instruction source; the Chinese `bodyMarkdown` field is a website display mirror whose section structure, code fences, and repository-relative references are validated against that canonical source. `README.zh.md` is validated against the structured localization source but is not parsed as build data.
 
-GitHub Actions also validates Agent Skills specification compatibility with a pinned `skills-ref` revision, exercises the installer's check/install/idempotency/collision paths across the complete skill set, and runs real-browser Chromium smoke tests for the bilingual gallery. To run the browser smoke tests locally after installing Chromium with Playwright:
+GitHub Actions also validates Agent Skills specification compatibility with a pinned `skills-ref` revision, exercises the installer's check/install/idempotency/collision paths across the complete skill set, and runs real-browser Chromium smoke tests for the fully bilingual gallery. To run the browser smoke tests locally after installing Chromium with Playwright:
 
 ```bash
 npx playwright install chromium

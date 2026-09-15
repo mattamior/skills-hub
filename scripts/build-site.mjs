@@ -55,10 +55,6 @@ const escapeHtml = (value) => String(value)
   .replaceAll("'", "&#039;");
 
 const escapeXml = (value) => escapeHtml(value);
-const jsonForHtml = (value) => JSON.stringify(value)
-  .replaceAll("<", "\\u003c")
-  .replaceAll("\u2028", "\\u2028")
-  .replaceAll("\u2029", "\\u2029");
 
 function resolveMarkdownHref(href, slug) {
   if (/^(https?:|mailto:|#)/.test(href)) return href;
@@ -82,37 +78,33 @@ function renderMarkdown(source, slug) {
 }
 
 function renderSkillPage(skill) {
+  const zh = skill.localized["zh-CN"];
   const installCommand = `git clone ${repositoryUrl}.git\ncd skills-hub\n./scripts/link-skills.sh ${skill.slug}`;
-  const implicit = skill.allowImplicitInvocation
+  const implicitEn = skill.allowImplicitInvocation
     ? "Automatic selection allowed"
     : "Explicit invocation only";
+  const implicitZh = skill.allowImplicitInvocation
+    ? "允许自动选择"
+    : "仅显式调用";
   const sourceUrl = `${repositoryUrl}/blob/main/${skill.source}`;
   const agentUrl = `${repositoryUrl}/blob/main/${skill.agentSource}`;
   const canonicalUrl = `${publicUrl}/skills/${encodeURIComponent(skill.slug)}/`;
-  const localization = {
-    en: {
-      description: skill.description,
-      prompt: skill.defaultPrompt
-    },
-    zh: {
-      description: skill.localized["zh-CN"].description,
-      prompt: skill.localized["zh-CN"].examplePrompt
-    }
-  };
+  const pageTitleEn = `${skill.displayName} — Agent Skills`;
+  const pageTitleZh = `${zh.displayName} — Agent Skills`;
 
   return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="${escapeHtml(skill.shortDescription)}">
+  <meta name="description" content="${escapeHtml(skill.shortDescription)}" data-content-en="${escapeHtml(skill.shortDescription)}" data-content-zh="${escapeHtml(zh.shortDescription)}">
   <meta name="theme-color" content="${escapeHtml(skill.brandColor)}">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="${escapeHtml(skill.displayName)} — Agent Skills">
-  <meta property="og:description" content="${escapeHtml(skill.shortDescription)}">
+  <meta property="og:title" content="${escapeHtml(pageTitleEn)}" data-content-en="${escapeHtml(pageTitleEn)}" data-content-zh="${escapeHtml(pageTitleZh)}">
+  <meta property="og:description" content="${escapeHtml(skill.shortDescription)}" data-content-en="${escapeHtml(skill.shortDescription)}" data-content-zh="${escapeHtml(zh.shortDescription)}">
   <meta property="og:url" content="${escapeHtml(canonicalUrl)}">
   <meta name="twitter:card" content="summary">
-  <title>${escapeHtml(skill.displayName)} — Agent Skills</title>
+  <title data-en="${escapeHtml(pageTitleEn)}" data-zh="${escapeHtml(pageTitleZh)}">${escapeHtml(pageTitleEn)}</title>
   <link rel="canonical" href="${escapeHtml(canonicalUrl)}">
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="/styles.css">
@@ -120,10 +112,10 @@ function renderSkillPage(skill) {
 </head>
 <body class="skill-page" style="--skill-accent: ${escapeHtml(skill.brandColor)}">
   <header class="shell topbar">
-    <a class="wordmark" href="/" aria-label="Agent Skills home">Agent Skills<span>.</span></a>
-    <nav aria-label="Primary navigation">
-      <a href="/#catalog">Catalog</a>
-      <a href="/#usage">How to use</a>
+    <a class="wordmark" href="/" aria-label="Agent Skills home" data-aria-en="Agent Skills home" data-aria-zh="Agent Skills 首页">Agent Skills<span>.</span></a>
+    <nav aria-label="Primary navigation" data-aria-en="Primary navigation" data-aria-zh="主导航">
+      <a href="/#catalog" data-en="Catalog" data-zh="技能目录">Catalog</a>
+      <a href="/#usage" data-en="How to use" data-zh="如何使用">How to use</a>
       <a class="nav-github" href="${repositoryUrl}">GitHub <span aria-hidden="true">↗</span></a>
       <button class="theme-toggle" type="button" data-theme-toggle aria-label="Use light mode" title="Use light mode">
         <span data-theme-icon aria-hidden="true">☀</span>
@@ -137,47 +129,47 @@ function renderSkillPage(skill) {
 
   <main class="shell detail-main">
     <section class="detail-hero">
-      <a class="breadcrumb" href="/">← Back to catalog</a>
+      <a class="breadcrumb" href="/" data-en="← Back to catalog" data-zh="← 返回技能目录">← Back to catalog</a>
       <p class="eyebrow">$${escapeHtml(skill.slug)}</p>
-      <h1>${escapeHtml(skill.displayName)}</h1>
-      <p id="skill-description" class="detail-description">${escapeHtml(skill.description)}</p>
+      <h1 data-en="${escapeHtml(skill.displayName)}" data-zh="${escapeHtml(zh.displayName)}">${escapeHtml(skill.displayName)}</h1>
+      <p id="skill-description" class="detail-description" data-en="${escapeHtml(skill.description)}" data-zh="${escapeHtml(zh.description)}">${escapeHtml(skill.description)}</p>
       <div class="detail-meta">
-        <span class="pill">${escapeHtml(implicit)}</span>
-        <span class="pill">Config: <code>agents/openai.yaml</code></span>
+        <span class="pill" data-en="${escapeHtml(implicitEn)}" data-zh="${escapeHtml(implicitZh)}">${escapeHtml(implicitEn)}</span>
+        <span class="pill"><span data-en="Config:" data-zh="配置：">Config:</span> <code>agents/openai.yaml</code></span>
       </div>
       <div class="detail-actions">
-        <a class="button button-primary" href="#start">Use this skill</a>
-        <a class="button" href="${sourceUrl}">Open SKILL.md ↗</a>
-        <a class="button" href="${agentUrl}">Open agent config ↗</a>
+        <a class="button button-primary" href="#start" data-en="Use this skill" data-zh="使用此 Skill">Use this skill</a>
+        <a class="button" href="${sourceUrl}" data-en="Open SKILL.md ↗" data-zh="打开 SKILL.md ↗">Open SKILL.md ↗</a>
+        <a class="button" href="${agentUrl}" data-en="Open agent config ↗" data-zh="打开 Agent 配置 ↗">Open agent config ↗</a>
       </div>
     </section>
 
     <section id="start" class="detail-usage" aria-labelledby="start-heading">
       <div class="detail-section-head">
         <div>
-          <p class="eyebrow">Start here</p>
-          <h2 id="start-heading">Install and invoke</h2>
+          <p class="eyebrow" data-en="Start here" data-zh="从这里开始">Start here</p>
+          <h2 id="start-heading" data-en="Install and invoke" data-zh="安装与调用">Install and invoke</h2>
         </div>
-        <p>The commands and prompt below are generated from this repository’s current skill metadata.</p>
+        <p data-en="The commands and prompt below are generated from this repository’s current skill metadata." data-zh="下方命令和调用示例由当前仓库中的 Skill 元数据生成，并与仓库保持同步。">The commands and prompt below are generated from this repository’s current skill metadata.</p>
       </div>
       <div class="action-grid">
         <article class="action-card">
-          <h3>Install for Codex</h3>
-          <p>Install the skill at user scope so it is discoverable from any Codex project.</p>
+          <h3 data-en="Install for Codex" data-zh="安装到 Codex">Install for Codex</h3>
+          <p data-en="Install the skill at user scope so it is discoverable from any Codex project." data-zh="将 Skill 安装到用户级，使它能在任意 Codex 项目中被发现。">Install the skill at user scope so it is discoverable from any Codex project.</p>
           <div class="command">
             <pre id="install-command"><code>${escapeHtml(installCommand)}</code></pre>
-            <button class="copy-button" type="button" data-copy-target="install-command">Copy</button>
+            <button class="copy-button" type="button" data-copy-target="install-command" data-en="Copy" data-zh="复制">Copy</button>
           </div>
-          <p class="product-note">Already cloned the repository? Run only <code>./scripts/link-skills.sh ${escapeHtml(skill.slug)}</code>.</p>
+          <p class="product-note"><span data-en="Already cloned the repository? Run only" data-zh="已经克隆仓库？只需运行">Already cloned the repository? Run only</span> <code>./scripts/link-skills.sh ${escapeHtml(skill.slug)}</code><span data-en="." data-zh="。">.</span></p>
         </article>
         <article class="action-card">
-          <h3>Invoke explicitly</h3>
-          <p>Use the skill name in Codex, or adapt this default prompt for the task at hand.</p>
+          <h3 data-en="Invoke explicitly" data-zh="显式调用">Invoke explicitly</h3>
+          <p data-en="Use the skill name in Codex, or adapt this default prompt for the task at hand." data-zh="在 Codex 中使用 Skill 名称调用，或根据当前任务调整下面的默认提示。">Use the skill name in Codex, or adapt this default prompt for the task at hand.</p>
           <div class="command">
-            <pre id="invoke-command"><code>${escapeHtml(skill.defaultPrompt)}</code></pre>
-            <button class="copy-button" type="button" data-copy-target="invoke-command">Copy</button>
+            <pre id="invoke-command"><code data-en="${escapeHtml(skill.defaultPrompt)}" data-zh="${escapeHtml(zh.examplePrompt)}">${escapeHtml(skill.defaultPrompt)}</code></pre>
+            <button class="copy-button" type="button" data-copy-target="invoke-command" data-en="Copy" data-zh="复制">Copy</button>
           </div>
-          <p class="product-note">In ChatGPT, select <strong>${escapeHtml(skill.displayName)}</strong> from the Skills picker when available. Matching requests may also select it automatically when implicit invocation is enabled.</p>
+          <p class="product-note"><span data-en="In ChatGPT, select" data-zh="在 ChatGPT 中，从 Skills 选择器选择">In ChatGPT, select</span> <strong data-en="${escapeHtml(skill.displayName)}" data-zh="${escapeHtml(zh.displayName)}">${escapeHtml(skill.displayName)}</strong> <span data-en="from the Skills picker when available. Matching requests may also select it automatically when implicit invocation is enabled." data-zh="（如可用）。启用自动调用时，匹配的请求也可能自动选择它。">from the Skills picker when available. Matching requests may also select it automatically when implicit invocation is enabled.</span></p>
         </article>
       </div>
     </section>
@@ -185,21 +177,21 @@ function renderSkillPage(skill) {
     <section class="contract" aria-labelledby="contract-heading">
       <div class="contract-grid">
         <aside class="contract-aside">
-          <p class="eyebrow">Operating contract</p>
+          <p class="eyebrow" data-en="Operating contract" data-zh="工作契约">Operating contract</p>
           <h2 id="contract-heading">SKILL.md</h2>
-          <p>This is the skill’s repository instruction body, rendered directly from the same source used by ChatGPT and Codex.</p>
+          <p data-en="This is the skill’s repository instruction body, rendered directly from the canonical English source used by ChatGPT and Codex." data-zh="以下为官网维护的 SKILL.md 中文镜像译文；英文源文件仍是 ChatGPT 与 Codex 使用的规范事实源。">This is the skill’s repository instruction body, rendered directly from the canonical English source used by ChatGPT and Codex.</p>
         </aside>
-        <article class="markdown">${renderMarkdown(skill.body, skill.slug)}</article>
+        <article class="markdown" data-contract-lang="en">${renderMarkdown(skill.body, skill.slug)}</article>
+        <article class="markdown" data-contract-lang="zh" hidden>${renderMarkdown(zh.bodyMarkdown, skill.slug)}</article>
       </div>
     </section>
   </main>
 
   <footer class="shell footer">
-    <span>Generated from <code>${escapeHtml(skill.source)}</code> and <code>${escapeHtml(skill.agentSource)}</code>.</span>
-    <a href="${repositoryUrl}">View repository ↗</a>
+    <span><span data-en="Generated from" data-zh="生成自">Generated from</span> <code>${escapeHtml(skill.source)}</code> <span data-en="and" data-zh="与">and</span> <code>${escapeHtml(skill.agentSource)}</code><span data-en="." data-zh="。">.</span></span>
+    <a href="${repositoryUrl}" data-en="View repository ↗" data-zh="查看仓库 ↗">View repository ↗</a>
   </footer>
   <script src="/lang.js"></script>
-  <script type="application/json" id="skill-localization">${jsonForHtml(localization)}</script>
   <script src="/detail.js" defer></script>
 </body>
 </html>
@@ -258,7 +250,7 @@ for (const entry of skillEntries) {
   if (!zh || typeof zh !== "object" || Array.isArray(zh)) {
     throw new Error(`${localizationFile} is missing localization for ${entry.name}`);
   }
-  for (const field of ["shortDescription", "description", "examplePrompt"]) {
+  for (const field of ["displayName", "shortDescription", "description", "examplePrompt", "bodyMarkdown"]) {
     if (typeof zh[field] !== "string" || !zh[field].trim()) {
       throw new Error(`${localizationFile} localization for ${entry.name} is missing ${field}`);
     }

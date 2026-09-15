@@ -46,7 +46,7 @@ Codex CLI 或 IDE 扩展中也可先运行 `/skills` 确认已发现 skills，�
 1. 将 skill 放入 `skills/<skill-name>/`，并保持目录名与 `SKILL.md` 的 `name` 一致。
 2. 把通用工作流和关键约束写在 `SKILL.md`；按需细节放入 `references/`，输出模板放入 `assets/`。
 3. 同步维护 `agents/openai.yaml`，其默认提示必须显式包含 `$<skill-name>`。
-4. 将简体中文目录摘要和调用示例写入 `locales/zh-CN.json`，并保持 `README.zh.md` 中对应的正式文案一致。
+4. 在 `locales/zh-CN.json` 中维护简体中文展示名、目录摘要、完整适用范围说明、调用示例和完整官网契约镜像，并保持 `README.zh.md` 中对应的正式摘要与调用文案一致。
 5. 运行仓库与网站验证：
 
 ```bash
@@ -55,9 +55,9 @@ npm ci
 npm run check
 ```
 
-画廊构建会直接读取 `SKILL.md`、`agents/openai.yaml` 与 `locales/zh-CN.json`。`README.zh.md` 会与结构化本地化事实源做一致性校验，但不会再被解析为构建数据。
+画廊构建会直接读取 `SKILL.md`、`agents/openai.yaml` 与 `locales/zh-CN.json`。英文 `SKILL.md` 仍是 Agent 指令的规范事实源；中文 `bodyMarkdown` 是官网展示镜像，其主要章节、代码块和仓库内相对引用都会与英文事实源做结构校验。`README.zh.md` 会与结构化本地化事实源做一致性校验，但不会被解析为构建数据。
 
-GitHub Actions 还会使用固定 revision 的 Agent Skills `skills-ref` 检查规范兼容性，针对完整 skill 集合验证安装脚本的检查、安装、幂等与冲突拒绝路径，并使用真实 Chromium 浏览器执行双语画廊 smoke test。本地如需运行浏览器测试，可先通过 Playwright 安装 Chromium：
+GitHub Actions 还会使用固定 revision 的 Agent Skills `skills-ref` 检查规范兼容性，针对完整 skill 集合验证安装脚本的检查、安装、幂等与冲突拒绝路径，并使用真实 Chromium 浏览器执行完整双语画廊 smoke test。本地如需运行浏览器测试，可先通过 Playwright 安装 Chromium：
 
 ```bash
 npx playwright install chromium

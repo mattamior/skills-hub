@@ -34,6 +34,35 @@ test("catalog discovery, search shortcuts, and language preference work in a rea
   await expect(page.locator(".hero-panel")).toBeVisible();
 });
 
+test("light and dark theme preference persists across site surfaces", async ({ page }) => {
+  await page.goto("/");
+  await page.evaluate(() => localStorage.setItem("skills-hub-theme", "dark"));
+  await page.reload();
+
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://skills-hub.lapplax.com/");
+  const homeThemeToggle = page.locator("[data-theme-toggle]").first();
+  await expect(homeThemeToggle).toHaveAttribute("aria-label", "Use light mode");
+
+  await homeThemeToggle.click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator('meta[name="theme-color"]')).toHaveAttribute("content", "#f6f7f2");
+  expect(await page.evaluate(() => localStorage.getItem("skills-hub-theme"))).toBe("light");
+
+  await page.goto("/skills/pet-avatar-generation/");
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", "https://skills-hub.lapplax.com/skills/pet-avatar-generation/");
+  await expect(page.locator("[data-theme-toggle]").first()).toHaveAttribute("aria-label", "Use dark mode");
+
+  await page.getByRole("button", { name: "中文" }).click();
+  await expect(page.locator("[data-theme-toggle]").first()).toHaveAttribute("aria-label", "切换到暗色模式");
+
+  const response = await page.goto("/this-route-does-not-exist");
+  expect(response?.status()).toBe(404);
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await expect(page.locator("[data-theme-toggle]").first()).toHaveAttribute("aria-label", "切换到暗色模式");
+});
+
 test("skill detail localizes and copy interaction preserves the invocation", async ({ page, context }) => {
   await context.grantPermissions(["clipboard-read", "clipboard-write"], { origin: "http://127.0.0.1:4173" });
   await page.goto("/skills/pet-avatar-generation/");
@@ -56,4 +85,5 @@ test("unknown routes use the branded 404 page", async ({ page }) => {
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Page not found");
   await expect(page.locator('a.button-primary[href="/"]')).toHaveText("Back to catalog");
+  await expect(page.locator("[data-theme-toggle]")).toBeVisible();
 });

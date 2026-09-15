@@ -3,10 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "node scripts/build-site.mjs",
+    "build": "node scripts/build-site.mjs && node scripts/version-site-assets.mjs",
     "check:docs": "node scripts/verify-localization.mjs",
     "check:site": "node scripts/verify-site.mjs",
-    "check": "npm run build && npm run check:docs && npm run check:site",
+    "check:assets": "node scripts/verify-versioned-assets.mjs",
+    "check": "npm run build && npm run check:docs && npm run check:site && npm run check:assets",
     "test:browser": "playwright test",
     "test": "npm run check && npm run test:browser"
   },

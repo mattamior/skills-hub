@@ -50,8 +50,11 @@ for (const skill of data.skills) {
   for (const field of ["displayName", "shortDescription", "description", "examplePrompt", "bodyMarkdown"]) {
     if (!zh?.[field]) throw new Error(`Gallery entry ${skill.slug} is missing zh-CN ${field}`);
   }
-  if (!zh.examplePrompt.includes(`$${skill.slug}`) || !zh.bodyMarkdown.includes(`$${skill.slug}`)) {
-    throw new Error(`Chinese gallery invocation copy does not invoke ${skill.slug}`);
+  if (!zh.examplePrompt.includes(`$${skill.slug}`)) {
+    throw new Error(`Chinese gallery example prompt does not invoke ${skill.slug}`);
+  }
+  if (skill.body.includes(`$${skill.slug}`) && !zh.bodyMarkdown.includes(`$${skill.slug}`)) {
+    throw new Error(`Chinese gallery contract does not preserve canonical explicit invocation for ${skill.slug}`);
   }
 
   const detail = await readFile(path.join("dist", "skills", skill.slug, "index.html"), "utf8");

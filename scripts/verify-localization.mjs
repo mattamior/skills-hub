@@ -35,6 +35,15 @@ function countMatches(source, pattern) {
   return [...source.matchAll(pattern)].length;
 }
 
+function contentBlockCount(source) {
+  return source
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .filter(Boolean)
+    .filter((block) => !block.startsWith("```"))
+    .length;
+}
+
 if (localization.locale !== "zh-CN") throw new Error(`${localizationPath} locale must be zh-CN`);
 if (JSON.stringify(skillSlugs) !== JSON.stringify(localizedSlugs)) {
   throw new Error(`Localization skill keys must exactly match skills/: expected ${skillSlugs.join(", ")}; found ${localizedSlugs.join(", ")}`);
@@ -60,23 +69,29 @@ for (const slug of skillSlugs) {
   if (body.includes(`$${slug}`) && !entry.bodyMarkdown.includes(`$${slug}`)) {
     throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve the canonical explicit invocation`);
   }
+
   const englishH2 = countMatches(body, /^##\s+/gm);
   const chineseH2 = countMatches(entry.bodyMarkdown, /^##\s+/gm);
   if (englishH2 !== chineseH2) {
     throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve all ${englishH2} level-two sections; found ${chineseH2}`);
   }
+
   const englishFences = countMatches(body, /^```/gm);
   const chineseFences = countMatches(entry.bodyMarkdown, /^```/gm);
   if (englishFences !== chineseFences) {
     throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve fenced code structure`);
   }
+
   const englishLinks = relativeLinks(body);
   const chineseLinks = relativeLinks(entry.bodyMarkdown);
   if (JSON.stringify(englishLinks) !== JSON.stringify(chineseLinks)) {
     throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve repository-relative references`);
   }
-  if (entry.bodyMarkdown.length < Math.floor(body.length * 0.45)) {
-    throw new Error(`${localizationPath} ${slug} bodyMarkdown is suspiciously short compared with the canonical contract`);
+
+  const englishBlocks = contentBlockCount(body);
+  const chineseBlocks = contentBlockCount(entry.bodyMarkdown);
+  if (englishBlocks !== chineseBlocks) {
+    throw new Error(`${localizationPath} ${slug} bodyMarkdown must preserve all ${englishBlocks} non-code content blocks; found ${chineseBlocks}`);
   }
 
   if (!readmeZh.includes(entry.shortDescription)) {

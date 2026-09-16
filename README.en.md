@@ -8,7 +8,7 @@ Public gallery: [skills-hub.lapplax.com](https://skills-hub.lapplax.com/)
 
 | Skill | Purpose |
 | --- | --- |
-| [`brand-design-system`](skills/brand-design-system/SKILL.md) | Move from brand exploration, process records, and master approval to production assets, web integration, and visual acceptance. |
+| [`brand-design-system`](skills/brand-design-system/SKILL.md) | Establish brand foundations when needed, then move from identity exploration and approval to governed production assets, implementation, and visual/accessibility acceptance. |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | Turn a real pet photo into recognizable stylized profile avatars, explore distinct visual directions, and refine a selected result including transparent-background output. |
 
 ## Install

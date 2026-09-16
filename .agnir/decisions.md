@@ -1,6 +1,7 @@
 # Decisions
 
 - Keep each reusable skill independent under `skills/<skill-name>/` with `SKILL.md` as the entry point.
+- Keep `brand-design-system` identity-centric: establish brand foundation only when visual decisions depend on unresolved strategy; preserve explicit approval/master/QA gates; treat naming or visual clearance as a separately evidenced status rather than an inferred legal conclusion; keep tokens/manifests derivative of approved artwork; and do not expand the skill into standalone product UI component-library/design-system work.
 - Keep formal public documentation synchronized between English and Chinese.
 - Do not commit credentials, user data, generated caches, virtual environments, or local installation links.
 - Use Agnir `repository-filesystem/0.1` with project-owned continuity memory under `.agnir/` and repository `main` as the authoritative ref.

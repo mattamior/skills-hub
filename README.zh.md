@@ -8,7 +8,7 @@
 
 | Skill | 用途 |
 | --- | --- |
-| [`brand-design-system`](skills/brand-design-system/SKILL.md) | 从品牌探索、过程留档和母版确认推进到生产资产、网站接入与视觉验收。 |
+| [`brand-design-system`](skills/brand-design-system/SKILL.md) | 从必要的品牌基础与身份探索推进到明确审批、受治理的生产资产、实现接入以及视觉与可访问性验收。 |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | 将真实宠物照片转成保持辨识度的风格化头像，探索明显不同的视觉方向，并精修选中的方案，包括透明背景输出。 |
 
 ## 安装

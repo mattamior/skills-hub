@@ -5,25 +5,32 @@
 | Field | Value |
 | --- | --- |
 | Editable source |  |
-| Approved version or commit |  |
+| Approved version, commit, or checksum |  |
 | Approval date |  |
 | Owner |  |
+| Clearance status |  |
+| Primary locales/scripts |  |
 
 ## Master invariants
 
 ### Geometry and proportions
 
-### Palette
+### Palette and approved application pairings
 
-### Typography and licensing
+### Typography, script coverage, fallback, and licensing
 
 ### Negative space and background behavior
 
-### Lockups, spacing, and minimum size
+### Lockups, localized variants, spacing, and minimum size
 
 ## Asset inventory
 
-| Asset | Format and dimensions | Intended surface | Derived from | Validation |
+| Asset | Version/status | Format and dimensions | Intended surface | Locale/market | Derived from | Rights/review/expiry | Validation |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+
+## Machine-readable delivery
+
+| Artifact | Format/schema version | Purpose | Source-of-truth relationship | Validation |
 | --- | --- | --- | --- | --- |
 
 ## Implementation
@@ -31,11 +38,13 @@
 | Surface | Location | Change | Validation evidence |
 | --- | --- | --- | --- |
 
-## Visual QA
+## Visual and accessibility QA
 
-| Check | Environment or size | Evidence | Result |
+| Check | Environment, size, or standard | Evidence | Result |
 | --- | --- | --- | --- |
 
 ## Known limits
+
+## Deprecated or replaced assets
 
 ## Unresolved work

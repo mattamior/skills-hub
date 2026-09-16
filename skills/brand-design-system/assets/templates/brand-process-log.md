@@ -9,14 +9,22 @@
 | Started |  |
 | Last updated |  |
 | Approval authority |  |
+| Target markets |  |
+| Required languages/scripts |  |
 
-## Brief
+## Brief and brand foundation
 
 ### Audience and positioning
 
-### Intended surfaces
+### Promise or value proposition
 
-### Required languages
+### Differentiators and category associations
+
+### Personality and tone cues
+
+### Values and explicit non-values
+
+### Intended surfaces
 
 ### Constraints and exclusions
 
@@ -36,18 +44,28 @@
 
 ### Geometry and proportions
 
-### Palette
+### Palette and approved application pairings
 
-### Typography and casing
+### Typography, scripts, fallback, and casing
 
 ### Negative space and backgrounds
 
-### Lockups and spacing
+### Lockups, localization, and spacing
 
 ## Approval checkpoints
 
 | Date | Checkpoint | Decision | Evidence | Approver |
 | --- | --- | --- | --- | --- |
+
+## Clearance status
+
+| Area | Status | Jurisdiction/classes or scope | Evidence/date | Owner and limitations |
+| --- | --- | --- | --- | --- |
+
+## Governance and lifecycle
+
+| Item | Status | Version or revision | Locale/market | Rights/review/expiry | Replaces or exception | Owner |
+| --- | --- | --- | --- | --- | --- | --- |
 
 ## Inferences and unknowns
 

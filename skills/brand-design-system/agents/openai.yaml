@@ -1,8 +1,8 @@
 interface:
   display_name: "Brand Design System"
-  short_description: "Document, finalize, and package brand identities"
+  short_description: "Develop and govern production-ready brand identities"
   brand_color: "#63E6BE"
-  default_prompt: "Use $brand-design-system to document and develop a production-ready brand identity."
+  default_prompt: "Use $brand-design-system to establish, document, and deliver a production-ready brand identity with explicit approval and QA gates."
 
 policy:
   allow_implicit_invocation: true

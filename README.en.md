@@ -9,6 +9,7 @@ Public gallery: [skills-hub.lapplax.com](https://skills-hub.lapplax.com/)
 | Skill | Purpose |
 | --- | --- |
 | [`brand-design-system`](skills/brand-design-system/SKILL.md) | Establish brand foundations when needed, then move from identity exploration and approval to governed production assets, implementation, and visual/accessibility acceptance. |
+| [`canon-skill`](skills/canon-skill/SKILL.md) | Run stable multi-shot image generation and editing from a Subject Pack using explicit evidence authority, isolated reference roles, frozen generation packets, and continuity controls. |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | Turn a real pet photo into recognizable stylized profile avatars, explore distinct visual directions, and refine a selected result including transparent-background output. |
 
 ## Install
@@ -20,6 +21,7 @@ git clone https://github.com/mattamior/skills-hub.git
 cd skills-hub
 ./scripts/link-skills.sh --check brand-design-system
 ./scripts/link-skills.sh brand-design-system
+./scripts/link-skills.sh canon-skill
 ./scripts/link-skills.sh pet-avatar-generation
 ```
 
@@ -31,6 +33,10 @@ After installing it in the user-level `$HOME/.agents/skills` directory, you do n
 
 ```text
 $brand-design-system audit this project's existing logo, favicon, and PWA assets. Start read-only and report evidence, gaps, and required decisions.
+```
+
+```text
+$canon-skill use this Subject Pack to compile a multi-shot generation series. Keep canonical identity and use external references only for pose and lighting.
 ```
 
 ```text

@@ -1,0 +1,109 @@
+subject:
+  id: fixture-virtual-01
+  type: virtual-character
+
+canon:
+  written_authority:
+    - id: written-core
+      authority: WRITTEN_CANON
+      scope: [silhouette, helmet-geometry, chest-symbol, limb-proportions, materials]
+      facts:
+        - fixed humanoid service robot identity
+        - rounded helmet shell with a single dark visor
+        - triangular chest symbol centered on the upper torso
+        - long forearms relative to upper arms
+        - brushed metal shell with matte polymer joints
+  invariant_groups:
+    - id: silhouette
+      class: silhouette
+      regions: [full-body]
+      constraints:
+        - preserve canonical outer silhouette
+    - id: helmet-geometry
+      class: structure
+      regions: [head]
+      constraints:
+        - preserve shell and visor geometry
+    - id: chest-symbol
+      class: symbol
+      regions: [upper-torso]
+      constraints:
+        - preserve symbol shape, placement, and orientation
+    - id: limb-proportions
+      class: structure
+      regions: [arms, legs]
+      constraints:
+        - preserve canonical segment ratios
+    - id: materials
+      class: material
+      regions: [shell, joints]
+      constraints:
+        - preserve brushed-metal shell and matte-joint distinction
+
+references:
+  inventory:
+    - id: canonical-front
+      asset: fixture://virtual/front
+      authority: CANONICAL_VISUAL
+      views: [front]
+      visible_regions: [silhouette, helmet-geometry, chest-symbol, limb-proportions, materials]
+      generation_eligible: true
+      diagnostic_only: false
+    - id: canonical-rear
+      asset: fixture://virtual/rear
+      authority: CANONICAL_VISUAL
+      views: [rear]
+      visible_regions: [silhouette, helmet-geometry, limb-proportions, materials]
+      generation_eligible: true
+      diagnostic_only: false
+  profiles:
+    - id: front-body
+      match:
+        views: [front, three-quarter-front]
+      require:
+        invariant_groups: [silhouette, helmet-geometry, chest-symbol, limb-proportions, materials]
+      prefer_assets: [canonical-front]
+    - id: rear-body
+      match:
+        views: [rear, three-quarter-rear]
+      require:
+        invariant_groups: [silhouette, helmet-geometry, limb-proportions, materials]
+      prefer_assets: [canonical-rear]
+  bootstrap_policy:
+    allow_generation_without_canonical_visual: false
+
+calibration:
+  enabled: true
+  profiles:
+    - id: rear-diagnostic
+      purpose: verify rear silhouette and limb geometry
+      visible_regions: [silhouette, limb-proportions]
+      authority_assets: [canonical-rear]
+      generation_eligible: false
+      diagnostic_only: true
+
+validators:
+  identity:
+    - id: virtual-identity
+      required_for: [FINAL]
+      checks: [helmet-geometry, chest-symbol]
+  structure:
+    - id: virtual-geometry
+      required_for: [FINAL]
+      checks: [silhouette, limb-proportions]
+  local_quality:
+    - id: material-integrity
+      required_for: [FINAL]
+      checks: [materials]
+
+postprocess:
+  hooks:
+    - id: chest-symbol-finalize
+      stage: POST_GENERATION
+      required_for: [FINAL]
+
+delivery:
+  policies:
+    - id: default-final
+      source_required: ACCEPTED_CLEAN_MASTER
+      allow_derivatives: true

@@ -1,0 +1,100 @@
+subject:
+  id: fixture-human-01
+  type: human-character
+
+canon:
+  written_authority:
+    - id: written-core
+      authority: WRITTEN_CANON
+      scope: [primary-identity, body-proportions, facial-detail]
+      facts:
+        - stable adult facial identity
+        - dark wavy shoulder-length hair
+        - medium build with consistent shoulder-to-torso proportions
+        - one small canonical facial detail near the left cheek
+  invariant_groups:
+    - id: primary-identity
+      class: identity
+      regions: [head]
+      constraints:
+        - preserve facial geometry
+        - preserve eye and brow relationship
+    - id: body-proportions
+      class: structure
+      regions: [torso, shoulders]
+      constraints:
+        - preserve canonical shoulder-to-torso proportions
+    - id: facial-detail
+      class: surface
+      regions: [left-cheek]
+      constraints:
+        - preserve the small canonical feature in its declared region
+
+references:
+  inventory:
+    - id: canonical-front
+      asset: fixture://human/front
+      authority: CANONICAL_VISUAL
+      views: [front]
+      visible_regions: [primary-identity, body-proportions, facial-detail]
+      generation_eligible: true
+      diagnostic_only: false
+    - id: canonical-profile
+      asset: fixture://human/profile
+      authority: CANONICAL_VISUAL
+      views: [left-profile]
+      visible_regions: [primary-identity, facial-detail]
+      generation_eligible: true
+      diagnostic_only: false
+  profiles:
+    - id: front-closeup
+      match:
+        views: [front, three-quarter-front]
+        framing: [close-up, bust]
+      require:
+        invariant_groups: [primary-identity, facial-detail]
+      prefer_assets: [canonical-front]
+    - id: full-body
+      match:
+        framing: [full-body]
+      require:
+        invariant_groups: [primary-identity, body-proportions]
+      prefer_assets: [canonical-front]
+    - id: left-profile
+      match:
+        views: [left-profile]
+      require:
+        invariant_groups: [primary-identity, facial-detail]
+      prefer_assets: [canonical-profile]
+  bootstrap_policy:
+    allow_generation_without_canonical_visual: false
+
+calibration:
+  enabled: false
+  profiles: []
+
+validators:
+  identity:
+    - id: facial-identity
+      required_for: [FINAL]
+      checks: [primary-identity]
+  structure:
+    - id: body-proportion-check
+      required_for: [FULL_BODY]
+      checks: [body-proportions]
+  local_quality:
+    - id: facial-detail-integrity
+      required_for: [FINAL]
+      checks: [facial-detail]
+
+postprocess:
+  hooks:
+    - id: canonical-facial-detail-finalize
+      stage: POST_GENERATION
+      required_for: [FINAL]
+
+delivery:
+  policies:
+    - id: default-final
+      source_required: ACCEPTED_CLEAN_MASTER
+      allow_derivatives: true

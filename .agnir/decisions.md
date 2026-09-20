@@ -1,6 +1,7 @@
 # Decisions
 
 - Keep each reusable skill independent under `skills/<skill-name>/` with `SKILL.md` as the entry point.
+- Keep `canon-skill` subject-agnostic: Canon Skill owns generic canon-respecting runtime semantics, Subject Packs own subject identity facts/references/calibration/validators/hooks/delivery policy, and generation backends own transport. Continuity may supplement but never replace canonical authority; generated images never become identity authority by recency; session-local runtime state never writes back to Subject Canon without an explicit subject-owned process.
 - Keep `brand-design-system` identity-centric: establish brand foundation only when visual decisions depend on unresolved strategy; preserve explicit approval/master/QA gates; treat naming or visual clearance as a separately evidenced status rather than an inferred legal conclusion; keep tokens/manifests derivative of approved artwork; and do not expand the skill into standalone product UI component-library/design-system work.
 - Keep formal public documentation synchronized between English and Chinese.
 - Do not commit credentials, user data, generated caches, virtual environments, or local installation links.

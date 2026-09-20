@@ -9,6 +9,7 @@
 | Skill | 用途 |
 | --- | --- |
 | [`brand-design-system`](skills/brand-design-system/SKILL.md) | 从必要的品牌基础与身份探索推进到明确审批、受治理的生产资产、实现接入以及视觉与可访问性验收。 |
+| [`canon-skill`](skills/canon-skill/SKILL.md) | 用 Subject Pack、显式证据 authority、角色隔离与冻结 Generation Packet 维持固定主体在多轮图像工作流中的稳定 Canon。 |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | 将真实宠物照片转成保持辨识度的风格化头像，探索明显不同的视觉方向，并精修选中的方案，包括透明背景输出。 |
 
 ## 安装
@@ -20,6 +21,7 @@ git clone https://github.com/mattamior/skills-hub.git
 cd skills-hub
 ./scripts/link-skills.sh --check brand-design-system
 ./scripts/link-skills.sh brand-design-system
+./scripts/link-skills.sh canon-skill
 ./scripts/link-skills.sh pet-avatar-generation
 ```
 
@@ -31,6 +33,10 @@ cd skills-hub
 
 ```text
 $brand-design-system 审查这个项目现有的 Logo、favicon 和 PWA 图标，先做只读检查并报告证据、缺口和待决策项。
+```
+
+```text
+$canon-skill 使用这个 Subject Pack 和两张外部参考图编译一次多镜头生成；保持 canonical identity，把外部图只用于 pose 和 lighting。
 ```
 
 ```text

@@ -33,6 +33,8 @@ Read [the Generation Packet contract](references/generation-packet.md) before fr
 
 Generated outputs never become identity authority merely because they are recent. Only an accepted clean master may become continuity auxiliary evidence, and continuity may supplement canon but never replace it.
 
+After each execution, validate and recover in order using [the Validator Model](references/validator.md), [the Result Model](references/result-model.md), [the Recovery Model](references/recovery.md), and [clean-master/continuity rules](references/continuity.md). Only `ACCEPT` may create an accepted clean master; only an accepted clean master may be considered for continuity.
+
 ## Fail explicitly at contract boundaries
 
 Use explicit blocked states when required inputs or gates are unavailable instead of weakening canon constraints. Preserve the clean-master boundary between construction intermediates, clean master candidates, accepted clean masters, and delivery derivatives.

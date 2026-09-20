@@ -38,6 +38,12 @@ continuity_auxiliaries: []
 
 generation_packet: null
 retry_count: 0
+hard_reset_auto_retry_count: 0
+
+validation_report: null
+last_result_classification: null
+last_result_id: null
+candidate_clean_master: null
 
 session_import: null
 ```
@@ -138,6 +144,10 @@ After `PACKET_FROZEN`, the packet is immutable. A safe retry reuses it and incre
 
 `retry_count` is packet-revision local. It resets when `REVISE` freezes a new packet.
 
+`hard_reset_auto_retry_count` is also packet-revision local and is capped at 1. It records whether the one automatic fresh retry for a `HARD_RESET` has already been consumed.
+
+`validation_report`, `last_result_classification`, and `last_result_id` retain the latest attempt's validation provenance. `candidate_clean_master` points only to the exact post-generation candidate currently under validation or bounded refinement; it is cleared or superseded when the attempt is rejected or a new result is produced.
+
 Runtime diagnostics may retain older packet/result links for provenance, but only the active frozen packet is used for execution.
 
 ## Session isolation
@@ -155,7 +165,8 @@ The following are transient by default and are not automatically restored in a n
 - accepted clean master pointer;
 - continuity auxiliaries;
 - active Generation Packet;
-- retry count.
+- retry count and hard-reset automatic-retry count;
+- validation report, last result classification, and candidate clean-master pointer.
 
 Durable Subject Canon remains in the Subject Project/Subject Pack, not in this state.
 

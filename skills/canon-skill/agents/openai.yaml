@@ -1,0 +1,8 @@
+interface:
+  display_name: "Canon Skill"
+  short_description: "Run canon-aware image workflows with stable subject identity"
+  brand_color: "#6366F1"
+  default_prompt: "Use $canon-skill with my Subject Pack to keep the subject canon stable across generation or editing."
+
+policy:
+  allow_implicit_invocation: true

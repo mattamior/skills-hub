@@ -1,0 +1,98 @@
+subject:
+  id: fixture-pet-01
+  type: companion-animal
+
+canon:
+  written_authority:
+    - id: written-core
+      authority: WRITTEN_CANON
+      scope: [primary-identity, coat-pattern, body-structure, tail-structure]
+      facts:
+        - fixed short-haired cat identity
+        - green eyes
+        - asymmetrical dark patch around the right eye
+        - ringed tail with stable length and taper
+  invariant_groups:
+    - id: primary-identity
+      class: identity
+      regions: [head]
+      constraints:
+        - preserve face geometry
+        - preserve green eye color
+    - id: coat-pattern
+      class: surface
+      regions: [head, torso]
+      constraints:
+        - preserve canonical patch boundaries and asymmetry
+    - id: body-structure
+      class: structure
+      regions: [torso, limbs]
+      constraints:
+        - preserve compact body proportions
+    - id: tail-structure
+      class: structure
+      regions: [tail]
+      constraints:
+        - preserve ring pattern, length, and taper
+
+references:
+  inventory:
+    - id: canonical-front
+      asset: fixture://pet/front
+      authority: CANONICAL_VISUAL
+      views: [front]
+      visible_regions: [primary-identity, coat-pattern]
+      generation_eligible: true
+      diagnostic_only: false
+    - id: canonical-full-body
+      asset: fixture://pet/full-body
+      authority: CANONICAL_VISUAL
+      views: [three-quarter-front]
+      visible_regions: [primary-identity, coat-pattern, body-structure, tail-structure]
+      generation_eligible: true
+      diagnostic_only: false
+  profiles:
+    - id: face-closeup
+      match:
+        framing: [close-up]
+      require:
+        invariant_groups: [primary-identity, coat-pattern]
+      prefer_assets: [canonical-front]
+    - id: full-body
+      match:
+        framing: [full-body]
+      require:
+        invariant_groups: [primary-identity, coat-pattern, body-structure, tail-structure]
+      prefer_assets: [canonical-full-body]
+  bootstrap_policy:
+    allow_generation_without_canonical_visual: false
+
+calibration:
+  enabled: false
+  profiles: []
+
+validators:
+  identity:
+    - id: pet-identity
+      required_for: [FINAL]
+      checks: [primary-identity, coat-pattern]
+  structure:
+    - id: pet-structure
+      required_for: [FULL_BODY]
+      checks: [body-structure, tail-structure]
+  local_quality:
+    - id: fur-edge-quality
+      required_for: [FINAL]
+      checks: [coat-pattern]
+
+postprocess:
+  hooks:
+    - id: coat-pattern-finalize
+      stage: POST_GENERATION
+      required_for: [FINAL]
+
+delivery:
+  policies:
+    - id: default-final
+      source_required: ACCEPTED_CLEAN_MASTER
+      allow_derivatives: true

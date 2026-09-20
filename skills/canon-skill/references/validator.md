@@ -1,82 +1,18 @@
 # Validator Model
 
-Validation runs against the exact result produced by one frozen Generation Packet revision. Validators inspect the output; they do not rewrite the packet, reinterpret evidence roles, or silently change the requested shot.
+Validate the exact candidate produced under one frozen packet. Validators inspect outputs; they do not modify the specification, relax Canon or silently reinterpret reference roles.
 
-The runtime uses three ordered layers:
+## Inputs and phases
 
-```text
-V1 — CANON / STRUCTURE
-V2 — OPERATION COMPLIANCE
-V3 — LOCAL QUALITY
-```
+Resolve core and required subject validators before execution. Retain the candidate's byte hash, packet hash, evidence scopes, edit contract, series lock and hook records. A missing required validator, authority, hook or necessary approval is a blocked dependency, not a visual pass.
 
-Subject Pack validators may extend any layer, but every validator must report through the generic outcome contract.
+For a declared construction intermediate, run its explicit pre-finalization checks against that stage's contract. A final-only invariant may be deferred, not passed or discarded. After required finalizers and PRE_VALIDATION processing, run the complete applicable V1/V2/V3 validation on the exact candidate. Do not validate a marked delivery derivative in place of its master.
 
-## Validation inputs
+## V1 — Canon and Structure
 
-A validation run receives:
+Check canonical identity, fixed structural invariants, major anatomy/geometry, canon-bearing silhouette/proportions and external identity contamination. Subject Packs define the regions and feature semantics.
 
-```yaml
-result:
-generation_packet:
-subject_pack_revision:
-canonical_evidence:
-external_evidence:
-continuity_evidence:
-edit_contract:
-series_lock:
-hook_execution_record:
-```
-
-Validate the actual post-`POST_GENERATION` candidate that would become the clean master. Never validate a delivery derivative in place of the candidate.
-
-If a required validator, required authority asset, or required hook result is unavailable, stop with a blocked outcome rather than pretending the corresponding check passed.
-
-## Validator outcome contract
-
-Each validator returns one outcome:
-
-```text
-PASS
-HARD_FAIL
-OPERATION_FAIL
-LOCAL_DEFECT
-BLOCKED
-```
-
-and a structured record such as:
-
-```yaml
-validator_id: primary-identity
-layer: V1
-outcome: HARD_FAIL
-reason_code: WRONG_SUBJECT_IDENTITY
-scope: [primary-identity]
-evidence:
-  - canonical-front
-confidence: high
-notes:
-  - result depicts a different primary subject
-```
-
-A validator must report only within its declared scope. A local-quality validator cannot promote a structural failure to `PASS`, and an operation validator cannot redefine canonical identity.
-
-## V1 — Canon / Structure
-
-V1 answers whether the result is still the intended canonical subject with the required major structure.
-
-Check the applicable Subject Pack invariants, including:
-
-- canonical primary identity;
-- fixed structural invariants;
-- major anatomy or geometry;
-- silhouette or proportion requirements when canon-bearing;
-- subject-specific invariant groups;
-- external identity contamination.
-
-Use `HARD_FAIL` only for failures severe enough to invalidate the candidate as this subject or its required major structure.
-
-The canonical hard-failure reason codes are:
+Only these severe failures map to `HARD_FAIL`:
 
 ```text
 WRONG_SUBJECT_IDENTITY
@@ -85,108 +21,28 @@ MAJOR_ANATOMY_OR_GEOMETRY_FAILURE
 EXTERNAL_IDENTITY_CONTAMINATION
 ```
 
-Do not use `HARD_FAIL` for a small, bounded defect when overall identity and major structure remain correct. A missing small canonical surface detail, minor edge defect, or localized rendering flaw may be `LOCAL_DEFECT` if it can be repaired without redesigning identity, shot geometry, or structure.
-
-V1 must run before V2 and V3 classification is allowed to control recovery.
+A bounded small canonical surface defect can be `LOCAL_DEFECT` when identity and major structure remain intact. Do not classify missing small details as hard resets merely because a fresh sample might fix them, or hide major geometry failures as minor local defects.
 
 ## V2 — Operation Compliance
 
-V2 answers whether the frozen operation was actually executed as specified.
+Check the frozen camera, pose/configuration, composition, framing, shot geometry, edit contract, external-role execution, preserve scopes, aspect ratio and series consistency. A fundamentally correct subject with a wrong operation produces `OPERATION_FAIL`, not a hard reset.
 
-Check applicable fields such as:
-
-- camera and view;
-- pose or articulated configuration;
-- composition and framing;
-- shot geometry;
-- edit contract;
-- external-reference role execution;
-- preserve constraints;
-- aspect ratio;
-- series locks and series consistency;
-- requested object, environment, wardrobe, or secondary-subject behavior.
-
-Use `OPERATION_FAIL` when the subject is fundamentally correct but the requested operation is not.
-
-Typical reason codes include:
-
-```text
-CAMERA_NONCOMPLIANCE
-POSE_NONCOMPLIANCE
-COMPOSITION_NONCOMPLIANCE
-SHOT_GEOMETRY_NONCOMPLIANCE
-EDIT_CONTRACT_FAILURE
-REFERENCE_ROLE_EXECUTION_FAILURE
-PRESERVE_CONSTRAINT_FAILURE
-ASPECT_RATIO_FAILURE
-SERIES_CONSISTENCY_FAILURE
-```
-
-A V2 failure must not be relabeled as `HARD_FAIL` merely because another sample might execute the shot better.
+Typical reasons are `CAMERA_NONCOMPLIANCE`, `POSE_NONCOMPLIANCE`, `COMPOSITION_NONCOMPLIANCE`, `SHOT_GEOMETRY_NONCOMPLIANCE`, `EDIT_CONTRACT_FAILURE`, `REFERENCE_ROLE_EXECUTION_FAILURE`, `PRESERVE_CONSTRAINT_FAILURE`, `ASPECT_RATIO_FAILURE` and `SERIES_CONSISTENCY_FAILURE`.
 
 ## V3 — Local Quality
 
-V3 runs only after Canon/Structure and operation compliance are good enough to preserve.
+Check bounded artifacts, edges, local appendage/mechanical details, surface/wardrobe defects, backgrounds, unwanted text and local realism. Use `LOCAL_DEFECT` only where a bounded correction can preserve all passed identity, structure and operation scopes. V3 must not conceal a V1/V2 failure.
 
-Check localized quality defects such as:
+## Report contract
 
-- small rendering artifacts;
-- edge or masking defects;
-- hands, paws, appendages, or mechanical details when they are local rather than major structural failures;
-- wardrobe or surface defects;
-- background defects;
-- unwanted text or marks;
-- local realism problems;
-- small canonical details whose repair does not change identity or shot semantics.
+Each observation includes validator id, layer, scope, outcome, reason, supporting evidence and explicit uncertainty. Allowed outcomes are `PASS`, `HARD_FAIL`, `OPERATION_FAIL`, `LOCAL_DEFECT` and `BLOCKED`. Custom reasons must map to those generic outcomes. An optional validator's observed severe failure must not be silently ignored.
 
-Use `LOCAL_DEFECT` for bounded issues that can be refined while preserving all passed V1/V2 constraints.
+Do not infer confidence or report PASS without inspecting the required evidence. Duplicate ids, undeclared validators, invalid layer/outcome combinations and missing required checks cannot produce vacuous acceptance.
 
-Typical reason codes include:
+## Aggregation and short circuits
 
-```text
-LOCAL_ARTIFACT
-EDGE_DEFECT
-LOCAL_APPENDAGE_DEFECT
-SURFACE_DEFECT
-BACKGROUND_DEFECT
-UNWANTED_TEXT
-LOCAL_REALISM_DEFECT
-SMALL_CANONICAL_DETAIL_DEFECT
-```
+Unresolved real dependencies take precedence. Otherwise, after all required V1 observations exist, any valid V1 hard failure controls the result. Later layers may remain deliberately unrun after that decisive failure. With V1 non-decisive, require V2 observations; an operation failure controls recovery and may short-circuit V3. Acceptance or local refinement eligibility requires the remaining applicable checks.
 
-Do not use V3 refinement to hide a V1 or V2 failure.
+A deliberately short-circuited later layer is different from an unavailable validator. Record why it was not run; never fabricate PASS entries. The result mapping is in [Result Model](result-model.md).
 
-## Subject Pack validators
-
-A Subject Pack may declare additional validators in its `identity`, `structure`, or `local_quality` lists.
-
-Each custom validator must declare or resolve to:
-
-```yaml
-id:
-layer: V1 | V2 | V3
-scope: []
-required_for: []
-failure_mapping:
-  hard: []
-  operation: []
-  local: []
-```
-
-The implementation may understand subject-specific semantics. Canon Skill understands only the reported generic layer, scope, outcome, and reason code.
-
-If a custom validator introduces a new reason code, it must map to one of the generic outcome classes without adding a subject-specific result class.
-
-## Validation aggregation
-
-Aggregate in strict order:
-
-1. any unresolved required dependency -> `BLOCKED`;
-2. any valid V1 `HARD_FAIL` -> hard-reset candidate;
-3. after V1 has no hard failure, any V2 `OPERATION_FAIL` -> retry-required candidate;
-4. after V1/V2 pass, any V1 or V3 `LOCAL_DEFECT` -> refine-eligible candidate;
-5. otherwise -> accept candidate.
-
-Warnings may be recorded, but they cannot override a failing required validator.
-
-The final runtime result class is defined by [the result model](result-model.md).
+Any pixel mutation after validation creates a new candidate and requires revalidation. POST_VALIDATION bookkeeping cannot silently change accepted bytes. Delivery QA is separately scoped to derivatives.

@@ -1,117 +1,39 @@
 # Evidence Authority Model
 
-Canon Skill resolves visual conflicts by authority and role, not by image recency. Every piece of evidence must have an explicit provenance class and, when externally supplied, an allowed role.
+Resolve evidence by declared authority and scope, never by recency, visual appeal or attachment order. This hierarchy governs visual evidence only; it does not override host permissions, safety requirements or instruction authority.
 
-## Base authority hierarchy
-
-The default authority order is:
+## Base hierarchy
 
 ```text
 WRITTEN_CANON
-  >
-CANONICAL_VISUAL
-  >
-APPROVED_CALIBRATION
-  >
-ROLE_SCOPED_EXTERNAL_REFERENCE
-  >
-ACCEPTED_CONTINUITY
-  >
-PREVIEW_ONLY
-  >
-GENERATED_UNVERIFIED
+  > CANONICAL_VISUAL
+  > APPROVED_CALIBRATION
+  > ROLE_SCOPED_EXTERNAL_REFERENCE
+  > ACCEPTED_CONTINUITY
+  > PREVIEW_ONLY
+  > GENERATED_UNVERIFIED
 ```
 
-A Subject Pack may narrow the scope of an item, but it must not invert this hierarchy in a way that lets convenience evidence overwrite canonical identity or structure.
+Written Canon owns durable facts and invariants. Canonical visuals provide primary identity/structure evidence. Approved calibration contributes only its declared view/regions. External references contribute only authorized operation dimensions. Accepted continuity corroborates Canon and carries scoped series state. Previews carry planned or selected shot geometry. Unverified generated images supply no identity or continuity authority.
 
-Higher authority does not mean every higher-ranked asset must be attached to every generation. Evidence Planner still selects the minimum role-relevant subset.
+A higher-ranked item is not automatically relevant to every shot. Evidence planning still selects the minimum adequate subset subject to required assets and subject policy. Authority is scoped: a structural calibration image does not acquire authority over incidental facial or material details merely because they are visible.
 
-## Evidence classes
+## Role isolation
 
-`WRITTEN_CANON` is durable written subject truth. It governs named invariants, exclusions, and subject-owned constraints.
+Apply [Image Role Resolver](image-role-resolver.md) before [External Reference Router](external-reference-router.md). Protect canonical assets, explicit edit bases, selected preview geometry and verified continuity before assigning external roles.
 
-`CANONICAL_VISUAL` is the primary visual authority for identity, structure, surface, silhouette, materials, or other declared invariant regions.
+The external router supports baseline pose, camera, composition, lighting, wardrobe, environment, object and secondary-subject roles plus explicit generic non-identity extensions. `NON_HUMAN_SUBJECT` remains a supported narrower role; `SECONDARY_SUBJECT` is broader. Neither permits primary identity transfer. `ORIGINAL_PROMPT_REFERENCE` identifies conservative fallback provenance, whose allowed dimensions still require prompt or Subject Pack policy authorization.
 
-`APPROVED_CALIBRATION` is validated view- or diagnostic-specific evidence. It may carry strong authority for its declared regions and view, but its scope must be explicit.
+Promoting an external image into primary identity authority requires a separate subject-owned Canon approval/update process. Ordinary routing cannot perform that promotion, even when the external image appears more attractive or recent than Canon.
 
-`ROLE_SCOPED_EXTERNAL_REFERENCE` is user- or task-provided evidence whose influence is restricted to authorized roles.
+## Conflict handling
 
-`ACCEPTED_CONTINUITY` is an accepted clean master admitted only to preserve series continuity. It supplements canon and never replaces canonical authority.
+Identify each item's authority and scope, intersect it with the frozen effective specification and preserve constraints, and retain higher-authority invariants. Lower-authority evidence may fill only allowed, non-conflicting dimensions. Unresolved conflicts block instead of producing an invented compromise.
 
-`PREVIEW_ONLY` is compositional or selection evidence. It may describe a planned shot or chosen preview state but does not become final identity authority.
-
-`GENERATED_UNVERIFIED` is any generated output that has not passed the required validation and acceptance gates. It must never enter the identity chain.
-
-## External reference roles
-
-External evidence must be role-scoped before it can influence generation. Baseline roles include:
-
-```text
-POSE
-CAMERA
-COMPOSITION
-LIGHTING
-WARDROBE
-ENVIRONMENT
-OBJECT
-SECONDARY_SUBJECT
-ORIGINAL_PROMPT_REFERENCE
-```
-
-Additional generic roles may be introduced when they describe reusable visual functions rather than subject-specific facts.
-
-An external image that contains another person, animal, character, product, or object must not donate identity to the canonical subject unless the Subject Pack and task explicitly authorize that identity role. In ordinary subject-preservation workflows, external identity is contamination risk.
-
-## Image-role resolution precedence
-
-Image Role Resolver runs before external-reference routing. The v1 precedence is:
-
-```text
-PROTECTED_CANONICAL
-  >
-EDIT_TARGET
-  >
-PREVIEW_SHOT_REFERENCE
-  >
-ACCEPTED_CONTINUITY
-  >
-EXPLICIT_EXTERNAL_ROLE
-  >
-ORIGINAL_PROMPT_REFERENCE
-```
-
-This prevents an uploaded edit target from being reinterpreted as a pose reference and prevents a preview cell from being treated as an implicit final-quality source.
-
-When one image appears eligible for multiple roles, bind the highest-precedence role first, then explicitly add any additional allowed roles. Do not infer lower-priority roles from visual similarity alone.
-
-## Conflict resolution
-
-When evidence conflicts:
-
-1. identify each item's authority class;
-2. limit each item to its declared scope or role;
-3. preserve higher-authority canonical invariants;
-4. use lower-authority evidence only where it does not contradict those invariants;
-5. block execution when the conflict cannot be resolved without guessing.
-
-Do not solve conflicts by choosing the newest image, the most photorealistic image, the largest image, or the last-generated image.
-
-## Continuity admission
-
-Only an `ACCEPTED_CLEAN_MASTER` may become `ACCEPTED_CONTINUITY`.
-
-The following are prohibited from continuity admission:
-
-- previews;
-- failed generations;
-- `HARD_RESET` results;
-- unverified history;
-- delivery-only derivatives;
-- watermarked derivatives;
-- construction intermediates.
-
-Continuity evidence may help preserve pose-adjacent styling, environment, camera language, wardrobe state, or other series consistency that has already been accepted. It cannot override Subject Canon.
+A Subject Pack can narrow influence, require a particular profile/asset or disable optional recovery. It cannot let unverified generations replace Canon, grant an external subject the primary identity, or erase final invariants merely to pass validation.
 
 ## Generated-image chain prohibition
 
-A sequence of accepted generations must never become a self-referential identity chain with no canonical anchor. Every generation that depends on continuity still requires the canonical evidence needed for the shot under the Subject Pack's reference profiles.
+Only an eligible, fully validated and approved clean master may be admitted as accepted continuity. Previews, diagnostics, construction intermediates, failed generations, refine-only candidates, delivery copies and watermarked derivatives are prohibited.
+
+Each later generation independently requires the canonical evidence selected for its own shot. Continuity supplements Canon; it never replaces Canon. An imported or newly generated image does not gain authority from its timestamp, transport availability or presence in chat history.

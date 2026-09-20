@@ -12,6 +12,8 @@
 | [`canon-skill`](skills/canon-skill/SKILL.md) | 用 Subject Pack、显式证据 authority、角色隔离与冻结 Generation Packet 维持固定主体在多轮图像工作流中的稳定 Canon。 |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | 将真实宠物照片转成保持辨识度的风格化头像，探索明显不同的视觉方向，并精修选中的方案，包括透明背景输出。 |
 
+Canon Skill 当前是 **0.1.0 实验版**执行契约及确定性辅助代码，不是图像模型，也不内置真实主体。详细说明见[实现、验证和版本边界](docs/canon-skill.zh.md)。真实 consumer 切换及 1.0.0 的两个真实 consumer 门槛，与合成契约测试通过是不同事项。
+
 ## 安装
 
 Codex 会从用户级 `$HOME/.agents/skills` 目录发现 skills，本仓库使用符号链接保持已安装版本与源码一致：
@@ -63,14 +65,14 @@ npm run check
 
 画廊构建会直接读取 `SKILL.md`、`agents/openai.yaml` 与 `locales/zh-CN.json`。英文 `SKILL.md` 仍是 Agent 指令的规范事实源；中文 `bodyMarkdown` 是官网展示镜像，其主要章节、代码块和仓库内相对引用都会与英文事实源做结构校验。`README.zh.md` 会与结构化本地化事实源做一致性校验，但不会被解析为构建数据。
 
-GitHub Actions 还会使用固定 revision 的 Agent Skills `skills-ref` 检查规范兼容性，针对完整 skill 集合验证安装脚本的检查、安装、幂等与冲突拒绝路径，并使用真实 Chromium 浏览器执行完整双语画廊 smoke test。本地如需运行浏览器测试，可先通过 Playwright 安装 Chromium：
+GitHub Actions 会使用固定 revision 的 Agent Skills 与上游 skill-creator 检查规范兼容性，运行自动发现的 Python 契约回归，针对完整 skill 集合验证安装脚本的检查、安装、幂等与冲突拒绝路径，并使用真实 Chromium 浏览器执行完整双语画廊 smoke test。Python 回归命令见上面的 Canon Skill 文档。本地如需运行浏览器测试，可先通过 Playwright 安装 Chromium：
 
 ```bash
 npx playwright install chromium
 npm run test:browser
 ```
 
-当 skill 的路由发生实质变化时，复核 `tests/*-trigger-cases.md` 下对应的场景。
+当 skill 的路由发生实质变化时，复核 `tests/*-trigger-cases.md` 下对应的场景。书面测试场景及合成字节测试不等于已执行的视觉验收。
 
 正式用户文档保持 `README.zh.md` 与 `README.en.md` 同步。仓库只分发独立 skills，不打包 plugin，也不发布 GitHub Release。
 

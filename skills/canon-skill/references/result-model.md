@@ -1,152 +1,41 @@
 # Result Model
 
-Every generation or edit attempt receives exactly one top-level runtime classification:
+Each actual attempt or blocked execution receives exactly one top-level class: `ACCEPT`, `HARD_RESET`, `RETRY_REQUIRED`, `REFINE_ELIGIBLE`, or `BLOCKED`. A classifier consumes observed validation and dependencies; it is not itself visual perception.
+
+## Precedence
 
 ```text
-ACCEPT
-HARD_RESET
-RETRY_REQUIRED
-REFINE_ELIGIBLE
-BLOCKED
+BLOCKED > HARD_RESET > RETRY_REQUIRED > REFINE_ELIGIBLE > ACCEPT
 ```
 
-The classification is deterministic from required dependencies and validator outcomes. It is not a subjective quality score.
-
-## Classification precedence
-
-Apply this precedence:
-
-```text
-BLOCKED
-  >
-HARD_RESET
-  >
-RETRY_REQUIRED
-  >
-REFINE_ELIGIBLE
-  >
-ACCEPT
-```
-
-The precedence is logical, not an authority ranking. It prevents a lower-severity condition from masking a more fundamental failure.
+This is failure-handling precedence, not evidence authority. Keep all observed reasons even when one class controls the next action. Actual missing dependencies outrank apparent visual success. Later checks deliberately unrun after a decisive earlier failure are not invented dependency failures.
 
 ## ACCEPT
 
-Use `ACCEPT` only when:
+All applicable Canon/structure, operation, local quality, required hooks and required approval dependencies must pass for the exact candidate. Master promotion additionally requires eligible output provenance and byte/packet identity.
 
-- all required dependencies and gates are satisfied;
-- V1 has no hard failure;
-- V2 has no operation failure;
-- no required local defect remains;
-- all required post-generation and pre-validation hooks have completed successfully;
-- the exact candidate being accepted is the one that was validated.
-
-An accepted result may be promoted from `CLEAN_MASTER_CANDIDATE` to `ACCEPTED_CLEAN_MASTER`.
-
-Acceptance does not make the image Subject Canon. It may become continuity auxiliary evidence only through the continuity-admission contract.
+`ACCEPT` for a preview or diagnostic is limited to that artifact's purpose. It must not mint an accepted clean master. A post-validation Principal gate can leave an otherwise visually valid candidate awaiting approval; until that gate is satisfied, the dependent acceptance/promotion remains blocked. The frozen gate declaration is not mutated by the later approval receipt.
 
 ## HARD_RESET
 
-Use `HARD_RESET` only for:
+Use only `WRONG_SUBJECT_IDENTITY`, `MAJOR_STRUCTURAL_DRIFT`, `MAJOR_ANATOMY_OR_GEOMETRY_FAILURE` or `EXTERNAL_IDENTITY_CONTAMINATION`. Discard the failed result as an identity, continuity, preview, edit or refinement source.
 
-```text
-WRONG_SUBJECT_IDENTITY
-MAJOR_STRUCTURAL_DRIFT
-MAJOR_ANATOMY_OR_GEOMETRY_FAILURE
-EXTERNAL_IDENTITY_CONTAMINATION
-```
-
-The failing result is discarded as a continuity, refinement, or identity source.
-
-A `HARD_RESET` may trigger one automatic fresh retry under [the recovery contract](recovery.md). The fresh retry reuses frozen packet semantics and starts again from its authorized canonical, external, continuity, and edit-target inputs. It must not use the failed result as a new reference.
-
-Do not broaden `HARD_RESET` to cover camera, pose, composition, edit-contract, or ordinary local-quality failures.
+A packet may permit at most one automatic fresh retry after its initial hard failure. Subject policy may narrow that allowance to zero. Camera, pose, composition and ordinary local defects are not hard-reset reasons.
 
 ## RETRY_REQUIRED
 
-Use `RETRY_REQUIRED` when the canonical subject and major structure are basically correct but V2 shows that the operation did not execute as frozen.
-
-Examples include:
-
-- wrong camera or view;
-- wrong pose;
-- wrong composition or framing;
-- shot geometry mismatch;
-- external role not followed;
-- preserve constraint violated without major canonical drift;
-- edit contract not followed;
-- wrong aspect ratio;
-- series consistency miss.
-
-`RETRY_REQUIRED` never causes an automatic retry.
-
-The principal or an explicitly authorized controller may later request `RETRY`, which reuses the same packet semantics, or `REVISE`, which changes authorized semantics and freezes a new packet.
-
-The failed result does not become continuity evidence or a clean master.
+The subject is fundamentally correct but the frozen operation failed: camera, pose, composition, roles, shot geometry, preserve scopes, edit contract, ratio or series consistency. Never retry automatically. A later explicit RETRY uses the same packet; changing intended semantics requires REVISE. This failed output is not a clean master or continuity input.
 
 ## REFINE_ELIGIBLE
 
-Use `REFINE_ELIGIBLE` only when:
-
-- V1 confirms canonical identity and major structure;
-- V2 confirms the requested shot/operation;
-- remaining defects are bounded and local.
-
-The result remains a `CLEAN_MASTER_CANDIDATE`, not an accepted clean master.
-
-A refinement must preserve every V1/V2-passed scope and target only the declared local defects. Refinement is a new edit/generation attempt with explicit preserve constraints and must be revalidated before acceptance.
-
-A refine-eligible candidate cannot enter continuity until a later result reaches `ACCEPT`.
+Identity/major structure and operation are correct, with only bounded local defects remaining. The result remains a candidate. An explicit refinement may bind it as an edit target with all passed V1/V2 scopes protected. The new result requires complete applicable revalidation before acceptance; the refine-only candidate cannot enter continuity.
 
 ## BLOCKED
 
-Use `BLOCKED` when execution or trustworthy validation cannot proceed because a required dependency is unavailable or unresolved.
+A required dependency or trustworthy validation is unavailable. Baseline reasons include `SPEC_UNRESOLVED`, `SUBJECT_PACK_UNAVAILABLE`, `CANONICAL_EVIDENCE_UNAVAILABLE`, `EDIT_TARGET_UNAVAILABLE`, `PREVIEW_REFERENCE_UNAVAILABLE`, `GATE_NOT_SATISFIED`, `VALIDATOR_UNAVAILABLE`, `REQUIRED_HOOK_FAILED`, `PROVENANCE_UNVERIFIED`, `TRANSPORT_UNAVAILABLE` and `BACKEND_CAPABILITY_UNAVAILABLE`.
 
-Baseline codes include:
-
-```text
-SPEC_UNRESOLVED
-SUBJECT_PACK_UNAVAILABLE
-CANONICAL_EVIDENCE_UNAVAILABLE
-EDIT_TARGET_UNAVAILABLE
-PREVIEW_REFERENCE_UNAVAILABLE
-GATE_NOT_SATISFIED
-VALIDATOR_UNAVAILABLE
-REQUIRED_HOOK_FAILED
-PROVENANCE_UNVERIFIED
-```
-
-`BLOCKED` is not a failed generation quality judgment. It means the runtime lacks the authority or dependency needed to continue safely.
-
-Do not automatically retry a blocked state. Resolve the dependency first.
-
-## Mixed failures
-
-If one result has multiple failures, classify using the precedence above.
-
-Examples:
-
-- identity contamination plus wrong camera -> `HARD_RESET`;
-- correct subject plus wrong pose plus edge artifact -> `RETRY_REQUIRED`;
-- correct subject and shot plus edge artifact -> `REFINE_ELIGIBLE`;
-- validator unavailable even if the image looks correct -> `BLOCKED`.
-
-Record all observed reasons even when one higher-precedence class controls recovery.
+Do not escape a blocker by weakening evidence, skipping required hooks, inventing approval or sampling again. Delivery can be blocked while its source master remains accepted; report the scope rather than retroactively changing master truth.
 
 ## Result record
 
-Each attempt should produce:
-
-```yaml
-result_id:
-packet_revision:
-attempt_index:
-classification:
-reason_codes: []
-validator_report:
-hook_execution_record:
-candidate_provenance:
-automatic_action:
-```
-
-`automatic_action` is one of `NONE` or `FRESH_RETRY_ONCE`. Result classification itself never mutates the frozen Generation Packet.
+Use the [result schema](../assets/schemas/result.schema.json): result id, packet revision, attempt index, classification, reason codes, validator and hook records, candidate provenance and automatic action (`NONE` or `FRESH_RETRY_ONCE`). Result metadata never changes the frozen packet retrospectively. Follow [recovery](recovery.md) and [continuity](continuity.md) for the allowed next transitions.

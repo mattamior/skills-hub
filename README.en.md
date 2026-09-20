@@ -12,6 +12,8 @@ Public gallery: [skills-hub.lapplax.com](https://skills-hub.lapplax.com/)
 | [`canon-skill`](skills/canon-skill/SKILL.md) | Run stable multi-shot image generation and editing from a Subject Pack using explicit evidence authority, isolated reference roles, frozen generation packets, and continuity controls. |
 | [`pet-avatar-generation`](skills/pet-avatar-generation/SKILL.md) | Turn a real pet photo into recognizable stylized profile avatars, explore distinct visual directions, and refine a selected result including transparent-background output. |
 
+Canon Skill is an experimental **0.1.0** operating contract with deterministic helpers, not an image model or a bundled real subject. Read its [implementation, verification and release boundaries](docs/canon-skill.en.md). Real-consumer cutover and the two-real-consumer 1.0.0 gate are separate from synthetic contract-test success.
+
 ## Install
 
 Codex discovers user-level skills from `$HOME/.agents/skills`. This repository uses symbolic links so installed skills stay aligned with their source:
@@ -63,14 +65,14 @@ npm run check
 
 The gallery build reads `SKILL.md`, `agents/openai.yaml`, and `locales/zh-CN.json` directly. English `SKILL.md` remains the canonical agent instruction source; the Chinese `bodyMarkdown` field is a website display mirror whose section structure, code fences, and repository-relative references are validated against that canonical source. `README.zh.md` is validated against the structured localization source but is not parsed as build data.
 
-GitHub Actions also validates Agent Skills specification compatibility with a pinned `skills-ref` revision, exercises the installer's check/install/idempotency/collision paths across the complete skill set, and runs real-browser Chromium smoke tests for the fully bilingual gallery. To run the browser smoke tests locally after installing Chromium with Playwright:
+GitHub Actions validates Agent Skills compatibility and the upstream skill-creator contract at pinned revisions, runs discovered Python contract regressions, exercises the installer's check/install/idempotency/collision paths across the complete skill set, and runs real-browser Chromium smoke tests for the fully bilingual gallery. The Canon Skill documentation above contains the Python regression commands. To run browser smoke tests locally after installing Chromium with Playwright:
 
 ```bash
 npx playwright install chromium
 npm run test:browser
 ```
 
-For material routing changes, review the matching scenarios under `tests/*-trigger-cases.md`.
+For material routing changes, review the matching scenarios under `tests/*-trigger-cases.md`. Written scenarios and simulated byte tests are not executed visual acceptance.
 
 Keep formal user documentation synchronized between `README.zh.md` and `README.en.md`. The repository distributes standalone skills only; it does not package a plugin or publish a GitHub Release.
 

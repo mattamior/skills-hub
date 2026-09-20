@@ -19,7 +19,8 @@ ROUTES = ("SERIES", "EXISTING_SERIES_SHOT", "STANDALONE_SHOT", "PREVIEW_ONLY",
 ROLES = ("PROTECTED_CANONICAL", "EDIT_TARGET", "PREVIEW_SHOT_REFERENCE",
          "ACCEPTED_CONTINUITY", "EXPLICIT_EXTERNAL_ROLE", "ORIGINAL_PROMPT_REFERENCE")
 EXTERNAL = frozenset(("POSE", "CAMERA", "COMPOSITION", "LIGHTING", "WARDROBE",
-                      "ENVIRONMENT", "OBJECT", "SECONDARY_SUBJECT", "NON_HUMAN_SUBJECT"))
+                      "ENVIRONMENT", "OBJECT", "SECONDARY_SUBJECT", "NON_HUMAN_SUBJECT",
+                      "TEXTURE", "TEMPORARY_STYLING", "EXPRESSION", "GAZE"))
 HARD_REASONS = frozenset(("WRONG_SUBJECT_IDENTITY", "MAJOR_STRUCTURAL_DRIFT",
                           "MAJOR_ANATOMY_OR_GEOMETRY_FAILURE", "EXTERNAL_IDENTITY_CONTAMINATION"))
 HOOK_STAGES = ("PRE_GENERATION", "POST_GENERATION", "PRE_VALIDATION",
@@ -122,6 +123,8 @@ def plan_evidence(pack: Mapping[str, Any], shot: Mapping[str, Any]) -> dict[str,
         raise Blocked("SPEC_UNRESOLVED", "duplicate asset id")
     matched = []
     selected_profile = shot.get("reference_profile")
+    if pack.get("runtime", {}).get("defaults", {}).get("profile_selection") == "EXPLICIT_SINGLE" and selected_profile is None:
+        raise Blocked("SPEC_UNRESOLVED", "pack requires one explicit primary profile")
     for profile in pack["references"]["profiles"]:
         match = profile.get("match", {})
         if set(match) - {"views", "framing", "operations"}:
@@ -134,7 +137,7 @@ def plan_evidence(pack: Mapping[str, Any], shot: Mapping[str, Any]) -> dict[str,
         raise Blocked("SPEC_UNRESOLVED", "selected profile does not match shot")
     required = set(shot.get("required_invariant_groups", []))
     preferred: set[str] = set()
-    mandatory: set[str] = set()
+    mandatory: set[str] = set(shot.get("required_asset_ids", []))
     for profile in matched:
         required.update(profile.get("require", {}).get("invariant_groups", []))
         mandatory.update(profile.get("require", {}).get("assets", []))
@@ -203,10 +206,22 @@ def freeze_packet(packet: Mapping[str, Any]) -> FrozenPacket:
         raise Blocked("SUBJECT_PACK_UNAVAILABLE")
     if not p["canonical_evidence"]:
         raise Blocked("CANONICAL_EVIDENCE_UNAVAILABLE")
+    if p["operation"] not in ("GENERATE", "EDIT", "VALIDATE", "DERIVE"):
+        raise Blocked("SPEC_UNRESOLVED", "unknown operation")
+    if p["route"] == "PREVIEW_ONLY" and p["output_kind"] not in ("PREVIEW", "IDENTITY_CHECK"):
+        raise Blocked("SPEC_UNRESOLVED", "preview-only route cannot mint a final")
+    if any(a.get("authority") not in ("CANONICAL_VISUAL", "APPROVED_CALIBRATION") or a.get("diagnostic_only") is True or a.get("generation_eligible") is False for a in p["canonical_evidence"]):
+        raise Blocked("CANONICAL_EVIDENCE_UNAVAILABLE", "invalid canonical generation evidence")
     if p["operation"] == "EDIT" and (not p.get("edit_target") or not p.get("edit_contract")):
         raise Blocked("EDIT_TARGET_UNAVAILABLE")
     scope_hash = digest({key: p[key] for key in ("subject", "effective_spec", "series_lock", "shot", "output_kind")})
     for gate in p.get("gates", []):
+        if gate.get("phase", "PRE_EXECUTION") not in ("PRE_EXECUTION", "POST_VALIDATION"):
+            raise Blocked("SPEC_UNRESOLVED", "unknown approval phase")
+        if gate.get("phase") == "POST_VALIDATION":
+            if not gate.get("id"):
+                raise Blocked("SPEC_UNRESOLVED", "post-validation gate requires an id")
+            continue
         if gate.get("required") and (gate.get("status") != "PASSED" or not gate.get("evidence_id") or gate.get("scope_hash") != scope_hash):
             raise Blocked("GATE_NOT_SATISFIED")
     if p["output_kind"] not in ("FINAL", "IDENTITY_CHECK", "PREVIEW", "DIAGNOSTIC", "CALIBRATION"):
@@ -238,14 +253,14 @@ def classify_result(report: list[dict[str, Any]], required: list[dict[str, Any]]
     if len(by_id) != len(report) or not {"V1", "V2", "V3"} <= {v["layer"] for v in required if v.get("required", True)}:
         return "BLOCKED"
     declared = {v["id"] for v in required}
-    if len(declared) != len(required) or set(by_id) - declared:
+    if len(declared) != len(required) or set(by_id) - declared or any(v["layer"] not in ("V1", "V2", "V3") for v in required):
         return "BLOCKED"
     active = []
     for spec in required:
         row = by_id.get(spec["id"])
-        if row is None and not spec.get("required", True):
+        if row is None:
             continue
-        if row is None or row.get("layer") != spec["layer"]:
+        if row.get("layer") != spec["layer"]:
             return "BLOCKED"
         outcome = row.get("outcome")
         if outcome not in ("PASS", "HARD_FAIL", "OPERATION_FAIL", "LOCAL_DEFECT"):
@@ -257,10 +272,14 @@ def classify_result(report: list[dict[str, Any]], required: list[dict[str, Any]]
         if outcome == "LOCAL_DEFECT" and row["layer"] not in ("V1", "V3"):
             return "BLOCKED"
         active.append(outcome)
-    for outcome, result in (("HARD_FAIL", "HARD_RESET"), ("OPERATION_FAIL", "RETRY_REQUIRED"), ("LOCAL_DEFECT", "REFINE_ELIGIBLE")):
-        if outcome in active:
-            return result
-    return "ACCEPT"
+    # A later layer may be deliberately unrun after an earlier decisive failure.
+    # Actual unavailable validators/hooks are blockers, not deliberate short circuits.
+    for layer, decisive, classification in (("V1", "HARD_FAIL", "HARD_RESET"), ("V2", "OPERATION_FAIL", "RETRY_REQUIRED"), ("V3", None, None)):
+        if any(v["id"] not in by_id for v in required if v["layer"] == layer and v.get("required", True)):
+            return "BLOCKED"
+        if decisive in active:
+            return classification
+    return "REFINE_ELIGIBLE" if "LOCAL_DEFECT" in active else "ACCEPT"
 
 
 def recovery_action(classification: str, packet: FrozenPacket, state: dict[str, Any], attempt_index: int) -> str:
@@ -276,7 +295,8 @@ def recovery_action(classification: str, packet: FrozenPacket, state: dict[str, 
 
 
 def accept_master(packet: FrozenPacket, candidate: dict[str, Any], classification: str,
-                  validated_sha256: str, hooks_complete: bool) -> dict[str, Any]:
+                  validated_sha256: str, hooks_complete: bool,
+                  approvals: list[dict[str, Any]] | None = None) -> dict[str, Any]:
     p = packet.data
     if classification != "ACCEPT" or not hooks_complete:
         raise Blocked("GATE_NOT_SATISFIED")
@@ -285,13 +305,22 @@ def accept_master(packet: FrozenPacket, candidate: dict[str, Any], classificatio
     if (not re.fullmatch(r"[0-9a-f]{64}", candidate.get("sha256", ""))
             or candidate["sha256"] != validated_sha256 or candidate.get("packet_hash") != packet.semantic_hash):
         raise Blocked("PROVENANCE_UNVERIFIED", "candidate changed after validation")
+    for gate in p.get("gates", []):
+        if gate.get("required") and gate.get("phase") == "POST_VALIDATION":
+            if not any(a.get("gate_id") == gate["id"] and a.get("evidence_id")
+                       and a.get("packet_hash") == packet.semantic_hash
+                       and a.get("candidate_sha256") == validated_sha256
+                       and a.get("status") == "PASSED" for a in (approvals or [])):
+                raise Blocked("GATE_NOT_SATISFIED", "candidate-specific Principal approval is required")
     return {**copy.deepcopy(candidate), "kind": "ACCEPTED_CLEAN_MASTER", "classification": "ACCEPT",
             "subject": p["subject"], "packet_hash": packet.semantic_hash, "provenance_verified": True}
 
 
 def admit_continuity(master: Mapping[str, Any], subject: Mapping[str, Any]) -> dict[str, Any]:
     if (master.get("kind") != "ACCEPTED_CLEAN_MASTER" or master.get("classification") != "ACCEPT"
-            or master.get("provenance_verified") is not True or not master.get("sha256") or not master.get("packet_hash")
+            or master.get("provenance_verified") is not True
+            or not re.fullmatch(r"[0-9a-f]{64}", master.get("sha256", ""))
+            or not re.fullmatch(r"[0-9a-f]{64}", master.get("packet_hash", ""))
             or master.get("subject") != dict(subject)):
         raise Blocked("PROVENANCE_UNVERIFIED", "continuity requires same-subject, same-revision accepted master")
     return copy.deepcopy(dict(master))
@@ -307,7 +336,7 @@ def assert_materialized(packet: FrozenPacket, receipts: Mapping[str, Mapping[str
         evidence = evidence + [p["preview_reference"]]
     for item in evidence:
         receipt = receipts.get(item["id"], {})
-        if receipt.get("usable") is not True or not receipt.get("handle") or not receipt.get("sha256"):
+        if receipt.get("usable") is not True or not receipt.get("handle") or not re.fullmatch(r"[0-9a-f]{64}", receipt.get("sha256", "")):
             raise Blocked("TRANSPORT_UNAVAILABLE", f"unmaterialized asset {item['id']}")
         if (receipt.get("simulation") or item.get("simulation")) and not simulation:
             raise Blocked("TRANSPORT_UNAVAILABLE", "fixture receipt cannot enter live generation")

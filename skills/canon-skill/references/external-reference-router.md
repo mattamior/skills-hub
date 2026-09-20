@@ -1,113 +1,37 @@
 # External Reference Router
 
-External Reference Router converts resolved external image roles into explicit allowed influence, denied influence, and contamination guards.
+Run only after Image Role Resolver. Do not reclassify protected canonical assets, edit targets, selected previews or admitted continuity images as ordinary external references.
 
-It runs only after Image Role Resolver. It must not reclassify edit targets, previews, continuity images, or protected canonical assets.
+## Modes and scopes
 
-## External-reference modes
+Use `NONE` when there are no qualifying external references, `ROLE_SCOPED` when all active references have explicit scopes, and `CONSERVATIVE_FALLBACK` when an original-prompt reference uses approved fallback dimensions. An explicit mapping always replaces fallback for that same image; it is never widened by another image's default mode.
 
-Runtime State uses one of three v1 modes:
+Baseline roles are `POSE`, `CAMERA`, `COMPOSITION`, `LIGHTING`, `WARDROBE`, `ENVIRONMENT`, `OBJECT`, `SECONDARY_SUBJECT` and `NON_HUMAN_SUBJECT`. Supported generic extensions are `TEXTURE`, `TEMPORARY_STYLING`, `EXPRESSION` and `GAZE`. `ORIGINAL_PROMPT_REFERENCE` identifies fallback provenance; it is not unlimited identity authority.
 
-- `NONE` — no external-reference evidence is active.
-- `ROLE_SCOPED` — every active external reference has an explicit allowed role map.
-- `CONSERVATIVE_FALLBACK` — one or more `ORIGINAL_PROMPT_REFERENCE` images remain and are restricted to prompt-explicit non-canonical influence.
+Pose controls configuration, not identity geometry. Camera controls view/perspective; composition controls spatial arrangement. Wardrobe and temporary styling apply only to allowed variables. Texture controls capture/render treatment, not new canonical surface facts. Expression/gaze apply only where meaningful for the subject. An object or secondary-subject role never merges that subject's identity into the primary subject.
 
-If any explicit role mapping exists, preserve it exactly. Do not widen an explicit map because another image uses fallback mode.
+## Fallback policy
 
-## Baseline roles
+Absent explicit roles, use only non-identity dimensions authorized by the current prompt or a declared Subject Pack original-reference policy, and only where consistent with the effective spec. Without either authorization, 'use this reference' is unresolved and must block. A consumer may preserve a known original-photography-reference workflow through such a declared policy; Canon Skill does not invent a broad fallback on its own.
 
-The v1 external roles are:
+Record the policy source, resolved roles, allowed influence, denied influence and contamination guards. If multiple original references are present, choose the relevant subset for the current target; do not average incompatible poses or send every image into every shot.
 
-```text
-POSE
-CAMERA
-COMPOSITION
-LIGHTING
-WARDROBE
-ENVIRONMENT
-OBJECT
-SECONDARY_SUBJECT
-ORIGINAL_PROMPT_REFERENCE
-```
+## Authority and preservation
 
-These roles describe reusable visual functions. They do not grant authority over the canonical primary subject's identity or structure.
+External references cannot replace canonical identity or structural evidence. Add `NO_EXTERNAL_IDENTITY_TRANSFER` for the primary subject even when an additional secondary subject is authorized. A request to make an external image primary identity is a subject-owned Canon update, not ordinary external routing.
 
-## Routing record
+The effective spec, edit preserve scopes and series locks constrain reference use. A background reference for an edit does not implicitly change pose or composition. A preview cell provides selected shot geometry only. Role-scoped evidence helps execute the specification; it cannot rewrite it.
 
-For each external reference, produce:
+## Output
 
 ```yaml
 image_id: external-01
 authority: ROLE_SCOPED_EXTERNAL_REFERENCE
 roles: [POSE, CAMERA]
-allowed_influence:
-  - primary_subject.pose
-  - camera.view
-denied_influence:
-  - primary_subject.identity
-  - primary_subject.structural_invariants
-risk_guards:
-  - NO_EXTERNAL_IDENTITY_TRANSFER
-  - PRESERVE_CANONICAL_STRUCTURE
+allowed_influence: [configuration, camera]
+denied_influence: [primary_identity, structural_invariants]
+risk_guards: [NO_EXTERNAL_IDENTITY_TRANSFER]
 source: explicit_role_map
 ```
 
-Use generic paths or invariant-group identifiers supplied by the compiled spec. Do not invent human-specific body parts or subject features in the router.
-
-## Role isolation
-
-Map each role to only the operation dimensions it authorizes.
-
-- `POSE` may influence articulated pose or subject orientation but not identity geometry.
-- `CAMERA` may influence view, lens language, perspective, or camera position.
-- `COMPOSITION` may influence framing and spatial arrangement.
-- `LIGHTING` may influence direction, intensity relationships, contrast, and illumination character.
-- `WARDROBE` may influence wearable items only when the Subject Pack or effective spec allows wardrobe variation.
-- `ENVIRONMENT` may influence background, setting, and scene context.
-- `OBJECT` may introduce or define a requested prop or object without donating primary-subject identity.
-- `SECONDARY_SUBJECT` may define an explicitly requested additional subject while remaining isolated from the canonical primary subject.
-- `ORIGINAL_PROMPT_REFERENCE` is limited to non-canonical properties explicitly requested by the prompt.
-
-If a role conflicts with a series lock, edit preserve constraint, or Subject Pack invariant, the higher-authority constraint wins.
-
-## External identity contamination
-
-External references must not donate primary-subject identity by default.
-
-When an external image contains a person, animal, character, product, robot, or other potentially identity-bearing subject, add `NO_EXTERNAL_IDENTITY_TRANSFER` unless the external subject is explicitly routed as `SECONDARY_SUBJECT`.
-
-`SECONDARY_SUBJECT` authorizes that additional subject to appear; it still does not authorize it to overwrite or blend with the canonical primary subject.
-
-If the principal intends an external image to become authoritative primary-subject identity evidence, that is a Subject Pack update or another explicit subject-owned process, not ordinary external-reference routing.
-
-## Edit operations
-
-For edits, route external references around the `EDIT_TARGET` and its `edit_contract`.
-
-Example:
-
-```yaml
-edit_contract:
-  change: [background]
-  preserve: [primary_subject]
-external_reference:
-  roles: [ENVIRONMENT]
-```
-
-The router allows the external environment to guide the replacement background while explicitly denying changes to protected subject regions.
-
-Do not infer pose or composition transfer from an environment reference unless those roles were separately authorized.
-
-## Explicit role versus fallback
-
-An explicit role map always wins over `ORIGINAL_PROMPT_REFERENCE` fallback for the same image.
-
-If the prompt says "use image 2 only for lighting," the router records `LIGHTING` and removes any broad fallback influence. "Only" is a hard scope limiter.
-
-If no role is explicit, fallback may use only prompt-explicit non-canonical properties. If the prompt merely says "use this reference" and safe influence cannot be determined, stop with `SPEC_UNRESOLVED`.
-
-## Output to Evidence Planner
-
-External Reference Router outputs `external_evidence` candidates plus risk guards. Evidence Planner does not upgrade their authority.
-
-External evidence may satisfy camera, pose, composition, lighting, wardrobe, environment, object, or secondary-subject requirements. It must not satisfy missing canonical identity or structural coverage.
+Carry these bindings into the packet's separate external channel. Required visual external evidence must actually be materialized for the backend. Missing transport blocks; successful use never promotes an external image to Canon or accepted continuity.

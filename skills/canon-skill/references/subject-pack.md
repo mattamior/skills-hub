@@ -1,171 +1,79 @@
-# Subject Pack Contract
+# Subject Pack contract 0.1
 
-A Subject Pack is the subject-owned input contract consumed by Canon Skill. It defines durable canonical truth, the evidence that supports that truth, and optional subject-specific validation, hooks, and delivery behavior.
+A Subject Pack defines durable subject truth and subject-owned capabilities. Canon Skill consumes it without assuming a human, animal, robot, product, or any mandatory anatomy.
 
-Canon Skill must be able to consume Subject Packs for humans, animals, virtual characters, products, robots, or other stable visual subjects without changing its core schema.
-
-## Required top-level shape
-
-A v1 Subject Pack uses this minimum shape:
+## Required normal form
 
 ```yaml
 subject:
-  id: example-subject
-  type: arbitrary-subject-class
-
+  id: subject-owned-id
+  type: subject-owned-class
 canon:
   written_authority: []
   invariant_groups: []
-
 references:
   inventory: []
   profiles: []
   bootstrap_policy: {}
-
 calibration:
   enabled: false
   profiles: []
-
 validators:
   identity: []
   structure: []
   local_quality: []
-
 postprocess:
   hooks: []
-
 delivery:
   policies: []
 ```
 
-Fields may be extended by future compatible versions, but subject-specific concepts must not become required generic keys.
+This is a field-shape example, not an executable pack with sufficient evidence. Validate resolved data with the [Subject Pack schema](../assets/schemas/subject-pack.schema.json). Optional `schema_version: "0.1"`, `runtime` policies and `extensions` are supported. Unsupported fields must not be silently ignored by an adapter.
 
-## Subject identity
+A consumer may normalize its own entry manifest and current source metadata into this form. Keep a hash/revision over every consumed authority source. Do not duplicate mutable identity facts in the generic skill or use an unversioned URL as immutable provenance.
 
-`subject.id` is a stable project-scoped identifier. `subject.type` is descriptive routing metadata, not a hard-coded switch inside Canon Skill.
+## Subject and written Canon
 
-Canon Skill must not branch on values such as `human`, `pet`, or `robot` to discover mandatory body parts. Subject-specific behavior is declared through invariant groups, reference profiles, validators, and hooks.
+`subject.id` is stable; `subject.type` is descriptive, not a switch for mandatory body parts. `written_authority` entries identify source, id and scoped invariant groups, with optional inline facts. The consumer resolves authoritative sources and any conflicts before execution.
 
-## Canon
+`invariant_groups` contain arbitrary ids, classes, regions and constraints. Generic classes include identity, structure, surface, silhouette, symbol and material; additional classes remain subject-owned. Optional `final_only` describes a construction-stage timing requirement, not an exemption from final Canon.
 
-`canon.written_authority` contains durable written facts or references to authoritative written sources. Each entry should identify its provenance and scope so runtime conflicts can be resolved without relying on recency.
+## References
 
-`canon.invariant_groups` describes features that must remain stable across generation. A group should use generic concepts such as:
+The [reference schema](../assets/schemas/references.schema.json) requires each inventory item to declare id, asset locator, authority, views, covered invariant groups in `visible_regions`, `generation_eligible` and `diagnostic_only`. `CANONICAL_VISUAL` and `APPROVED_CALIBRATION` are distinct. Diagnostic-only items are never generation inputs.
 
-```yaml
-- id: primary-identity
-  class: identity
-  regions: [head, upper-body]
-  constraints:
-    - preserve distinguishing geometry
-    - preserve canonical surface pattern
-```
+Reference profiles match generic shot `view`, `framing` and `operation` using `match.views`, `match.framing` and `match.operations`. They declare `require.invariant_groups`, optional `require.assets`, and preferred assets. Required assets are hard constraints; preferences are tie-breaks. An adapter may add explicit shot-level `required_asset_ids` for declared matching-view or conditional support, with provenance for that selection.
 
-Recommended `class` values include `identity`, `structure`, `surface`, `silhouette`, `material`, and `symbol`, but packs may define additional classes when needed.
+Select the smallest adequate subset subject to all hard constraints. `runtime.defaults.profile_selection: EXPLICIT_SINGLE` requires one resolved `shot.reference_profile`; this forbids unintentional union of multiple primary profiles. Without that policy, compatible matching requirements may be combined. Unknown profiles/groups block rather than weaken coverage.
 
-Do not require generic keys such as `face`, `hair`, `beauty_mark`, `coat`, or `human_anatomy`. Those are subject-owned semantics if a pack needs them.
-
-## Reference inventory
-
-`references.inventory` registers durable visual evidence. Each record should include enough metadata to determine authority, view, visible regions, generation eligibility, and provenance.
-
-Example:
-
-```yaml
-- id: canonical-front
-  asset: asset://subject/canonical-front
-  authority: CANONICAL_VISUAL
-  views: [front]
-  visible_regions: [primary-identity, torso-structure]
-  generation_eligible: true
-  diagnostic_only: false
-```
-
-`asset` may be a repository path, project asset identifier, or another transportable locator understood by the active Subject Project. Canon Skill treats it as opaque until a generation backend adapter resolves transport.
-
-## Reference profiles
-
-`references.profiles` lets the Subject Pack describe minimum role-relevant evidence sets without forcing Canon Skill to send every canonical reference into every shot.
-
-Example:
-
-```yaml
-- id: front-closeup
-  match:
-    views: [front, three-quarter-front]
-    framing: [close-up, bust]
-  require:
-    invariant_groups: [primary-identity]
-  prefer_assets: [canonical-front]
-```
-
-Evidence Planner selects the smallest profile-supported evidence set that covers the shot's required invariant groups and view constraints. If no profile satisfies required canon, generation is blocked rather than silently weakening evidence.
-
-`references.bootstrap_policy` defines whether and how a subject may begin work when normal evidence is incomplete. Bootstrap policy never elevates generated images above the authority model.
+`bootstrap_policy` describes authorized session transport preparation. It never means all bootstrapped assets belong in every call. Optional `provenance` records source hashes and approved transport variants; see [transport](transport.md). A transport derivative can carry an authority id without becoming a new identity authority.
 
 ## Calibration
 
-Calibration is optional and generic:
+The [calibration schema](../assets/schemas/calibration.schema.json) defines enabled status plus profiles with id, purpose, visible regions, authority assets, generation eligibility and diagnostic-only status. The consumer owns view labels and approval evidence. Canon Skill does not interpret subject-specific calibration numbers.
 
-```yaml
-calibration:
-  enabled: true
-  profiles:
-    - id: side-diagnostic
-      purpose: verify side geometry
-      visible_regions: [profile-structure]
-      authority_assets: [calibration-side]
-      generation_eligible: false
-      diagnostic_only: true
-```
+Approved matching-view calibration supplements Canon within its regions. A body/structure authority does not gain identity authority over incidental features visible in it. Distinct generated views have their own approval workflow; crops/boards are deterministic diagnostic derivatives where required by policy.
 
-Canon Skill understands approved calibration authority, matching-view calibration, generation eligibility, and diagnostic-only evidence. It does not interpret subject-specific calibration numbering or feature names.
+## Validators and hooks
 
-## Validators
+Pack validators reference explicitly registered host implementations or inspectable subject-owned instructions. Declare id, layer/scope, `required_for`, checks and failure mapping where needed. The host adds the generic V1/V2/V3 checks; empty custom lists never mean skip core validation.
 
-Validator declarations may reference generic runtime validators or subject-provided implementations.
+Hooks declare id, lifecycle stage, `required_for`, and optionally handler, deterministic status, order, scope, parameters and `checks_before`. Resolve them before execution using [the hook lifecycle](hooks.md). A handler locator is not authority to execute arbitrary code. Required missing hooks block.
 
-```yaml
-validators:
-  identity:
-    - id: stable-identity
-      required_for: [FINAL]
-  structure:
-    - id: primary-geometry
-      required_for: [FINAL]
-  local_quality:
-    - id: surface-integrity
-      required_for: [FINAL]
-```
+## Optional runtime policy
 
-Subject-provided validators may inspect subject-specific regions or semantics, but they report through the generic validation/result model.
+`runtime.defaults` carries subject-owned defaults such as ratio and single-primary-profile selection. `runtime.gates` declares approval scope, selectors and phase. `runtime.retry` may narrow automatic hard-reset recovery to zero for particular routes; it cannot expand the cap beyond one. `runtime.external_reference` may declare approved non-identity fallback dimensions and aliases. `runtime.transport` defines authorized transport variants, bootstrap and recovery policy.
 
-## Hooks
+`runtime.construction` may define temporary intermediates, deferred groups, pre-finalization checks and required finalizers. Resolve this into the packet's `construction_policy` and `validation_phases`; do not move final-only invariants into passed state before finalization. A temporary scaffold or feature-free base remains construction evidence, never continuity or final delivery.
 
-Hooks provide deterministic subject-specific processing without teaching Canon Skill the feature itself.
+Policy interpretation is performed by the authorized host/consumer adapter and frozen into the packet. A policy cannot bypass Canon, host safety, required approval or provenance. Unsupported required policy yields `BLOCKED`, not optimistic execution.
 
-```yaml
-postprocess:
-  hooks:
-    - id: canonical-detail-finalize
-      stage: POST_GENERATION
-      required_for: [FINAL]
-```
+## Delivery and variability
 
-Supported lifecycle stages are expected to include `PRE_GENERATION`, `POST_GENERATION`, `PRE_VALIDATION`, `POST_VALIDATION`, and `PRE_DELIVERY`. Canon Skill invokes declared hooks; the Subject Pack owns their behavior.
+`delivery.policies` defines subject-specific permitted outputs, mandatory delivery hooks, marks and derivative constraints. Delivery QA is separate from master acceptance. A pack may have no custom hooks, calibration, validators or export policy; feature-detect rather than assume all subjects share capabilities.
 
-## Delivery policies
+The same normal form describes [Human](fixtures/human.yaml), [Pet](fixtures/pet.yaml) and [Virtual](fixtures/virtual-character.yaml) fixtures. Their `fixture://` assets and validator ids are illustrative, not real image inputs or registered live implementations. They are never a substitute for real-consumer acceptance.
 
-`delivery.policies` declares subject-specific output requirements such as mandatory finalization hooks, permitted derivative types, or export constraints. Delivery policy cannot promote a derivative into canonical or continuity authority.
+## Other data contracts
 
-## Capability variability
-
-A valid pack may omit calibration, custom hooks, custom validators, or specialized delivery rules. Runtime code must feature-detect declared capabilities instead of assuming every Subject Pack implements the same workflow.
-
-The anonymous fixtures demonstrate the same contract across three subject classes:
-
-- [human fixture](fixtures/human.yaml)
-- [pet fixture](fixtures/pet.yaml)
-- [virtual-character fixture](fixtures/virtual-character.yaml)
-
-If a requirement cannot be expressed naturally across these classes without adding a subject-specific generic field, revise the contract before extending runtime implementation.
+Use the [runtime-state schema](../assets/schemas/runtime-state.schema.json), [packet schema](../assets/schemas/generation-packet.schema.json) and [result schema](../assets/schemas/result.schema.json) with this pack. Schema `$id` values under `schemas.canon-skill.invalid` are local-registry identifiers, not hosted endpoints. Register all six schema resources locally; no network schema retrieval is required.

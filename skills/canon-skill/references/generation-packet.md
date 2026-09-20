@@ -1,129 +1,27 @@
-# Generation Packet Contract
+# Generation Packet
 
-A Generation Packet is the frozen execution contract for one actual generation or edit. It captures the semantic decisions that must remain stable across safe retries.
+[Generation Packet schema](../schemas/generation-packet.schema.json) defines the v1 execution snapshot. [Generation Spec](../schemas/generation-spec.schema.json) is a separate Prompt Mode artifact and is never an already executable packet.
 
-## Minimum v1 shape
+## Freeze
 
-```yaml
-subject:
-  id: example-subject
-  pack_revision: immutable-or-resolvable-revision
+Freeze subject ID and pack revision; route, operation and output kind; effective spec, series lock and shot; written authority and canonical/external/continuity evidence; image roles, edit target and preview binding; preserve constraints, risk guards, hooks/versions, validators, required gates, retry and delivery policies. Include a construction policy only when the pack declares one.
 
-route: STANDALONE_SHOT
-operation: GENERATE
+Resolve semantic uncertainty first. Host preflight must separately verify actual images, trusted handlers and approvals; a schema-valid handler name is not a loaded implementation. Bind asset content hashes or approved transport variants before dispatch.
 
-effective_spec: {}
+`contracts.py freeze` produces `{format, digest, payload}` using versioned canon-json-v1 serialization: UTF-8, sorted object keys, ordered arrays, finite JSON numbers. It is not an RFC 8785 claim or a cross-language signature standard. Byte fingerprints detect changes; they do not prove truthful validation or attachment receipts.
 
-series_lock: {}
-shot: {}
+## RETRY
 
-canonical_evidence: []
-external_evidence: []
-continuity_evidence: []
+Reuse the same frozen payload and digest. Only approved transport handles/request IDs and stochastic sampling may vary. Adapter receipts must still identify the same authorized content/transport variants. Do not change camera, pose, scene, ratio, evidence membership/order/roles, edit base, preview selection, Canon, validators, hook requirements or delivery rules.
 
-preserve_constraints: []
-risk_guards: []
+The runtime's CURRENT_SHOT_OPERATION dispatch label does not rewrite the packet's original route. Failed output is never an input to its fresh retry. No transport failure authorizes dropping required evidence or switching to text-only generation.
 
-preprocess_hooks: []
-postprocess_hooks: []
+## REVISE
 
-validators: []
+Start from the previous packet, apply only Principal-authorized field changes, re-resolve affected roles/evidence/gates and freeze a new shot/packet revision. A changed digest alone does not establish authorization. Preserve all untouched constraints.
 
-retry_policy: {}
-delivery_policy: {}
-```
+The helper accepts exact existing object paths and requires a distinct revision ID; array surgery and unspecified changes are deliberately not inferred. New authorized work may assemble a new complete packet. Do not manufacture no-op revisions merely to reset the automatic retry budget.
 
-A packet may include backend transport metadata, but provider-specific fields must remain separable from the semantic contract.
+## Provenance
 
-## Freeze inputs
-
-Freeze only after resolving:
-
-- the Subject Pack and its revision;
-- route and operation;
-- effective user specification;
-- shot definition and series lock;
-- image roles;
-- canonical evidence selected by Evidence Planner;
-- role-scoped external evidence;
-- eligible continuity auxiliaries;
-- preserve constraints and contamination guards;
-- applicable hooks;
-- required validators;
-- retry policy;
-- delivery policy.
-
-If any required dependency is unresolved, return a blocked result instead of freezing an incomplete packet.
-
-## Evidence entries
-
-Each evidence entry should preserve provenance and role metadata sufficient for later audit.
-
-Example:
-
-```yaml
-- id: canonical-front
-  authority: CANONICAL_VISUAL
-  role: IDENTITY
-  scope: [primary-identity]
-  source: subject-pack
-```
-
-External evidence must include its explicit allowed roles. Continuity evidence must identify the accepted clean master from which it originated.
-
-## Preserve constraints and risk guards
-
-`preserve_constraints` are positive invariants that the operation must keep stable, such as an already accepted camera relationship, a structural region, or unaffected areas of an edit target.
-
-`risk_guards` are explicit failure-prevention constraints, such as preventing external identity contamination, protecting untouched regions during an edit, or forbidding delivery-only overlays in a clean master.
-
-These fields should express semantics, not backend prompt tricks.
-
-## Retry semantics
-
-`RETRY` reuses the same packet semantics. A retry may vary only execution details that do not alter intended meaning, such as backend randomness, a transport retry, or another provider-supported nondeterministic sample.
-
-A retry must not silently change:
-
-- shot geometry;
-- camera intent;
-- pose intent;
-- composition;
-- canonical evidence roles;
-- external-reference roles;
-- preserve constraints;
-- series locks;
-- validators;
-- hook requirements;
-- delivery policy.
-
-If any of those must change, the operation is a `REVISE`, not a retry.
-
-## Revision semantics
-
-`REVISE` starts from the prior packet, applies only principal-authorized semantic changes, re-runs affected routing and evidence planning, and produces a newly frozen packet with a new revision identifier.
-
-Unchanged fields should remain stable so revisions are attributable and reviewable.
-
-## Packet provenance
-
-The runtime should retain enough provenance to answer:
-
-- which Subject Pack revision was used;
-- which evidence items were selected and why;
-- which external roles were authorized;
-- which clean master supplied continuity;
-- which hooks and validators were required;
-- whether the result came from the initial attempt, a safe retry, or a revised packet.
-
-Packet provenance is session runtime evidence. It does not write back into Subject Canon automatically.
-
-## Clean-master and delivery boundary
-
-Generation output begins as a construction result or clean-master candidate. Only after required validation and acceptance may it become an accepted clean master.
-
-Delivery derivatives are created from the accepted clean master according to delivery policy. They may be resized, converted, watermarked, composited, sharpened, or otherwise prepared for delivery, but they never replace the accepted clean master in continuity or identity evidence.
-
-## Result linkage
-
-Every generation result must link to the packet revision that produced it. Later runtime work may classify that result as `ACCEPT`, `HARD_RESET`, `RETRY_REQUIRED`, `REFINE_ELIGIBLE`, or `BLOCKED`, but classification must not mutate the frozen packet retroactively.
+Link every attempt, hook result, validation report, candidate and delivery derivative to the producing packet digest and exact image content. Validate again after any pixel mutation. A result classification never mutates its historical packet. Session import preserves these records but does not turn them into Subject Canon.

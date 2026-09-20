@@ -1,98 +1,21 @@
 # Architecture Boundary
 
-Canon Skill is a subject-agnostic runtime contract for stable visual generation. It knows how to respect canon, but it does not own the facts that define any particular subject.
+Dependency direction: Subject Project / Subject Pack depends on Canon Skill; Canon Skill never depends on a particular subject. The generation backend is an independent execution provider.
 
-## Dependency direction
+## Ownership
 
-The dependency direction is one-way:
+Canon Skill owns generic mode routing, scoped authority, image roles, evidence planning, packet semantics, validation aggregation, bounded recovery, hook lifecycle, provenance, and session isolation.
 
-```text
-Canon Skill
-    ↑
-Subject Project / Subject Pack
-```
+Subject Packs own identity facts, invariant groups, primary and conditional evidence profiles, calibration approvals, optional validators, hook handlers, transport variants, runtime defaults, and delivery policies. Backend adapters own attachment transport, capability checks, execution, and result retrieval. The host enforces trusted code/tool permissions.
 
-A Subject Project may depend on Canon Skill. Canon Skill must not depend on a specific Subject Project, subject name, reference filename, calibration numbering scheme, facial feature, coat marking, emblem, or other subject-owned fact.
+## Separate forms of truth
 
-Generation backends are separate execution dependencies. Backend adapters may translate a frozen Generation Packet into provider-specific requests, but backend limitations must not redefine Subject Canon.
+Written Canon and approved visual authority are durable subject truth. Runtime shots, gates, styling, packets, candidates, and continuity are session-local. Only an explicit subject-owned Canon-maintenance process may promote new durable truth; ordinary acceptance or `SESSION_IMPORT` does not do so.
 
-## Ownership split
+Keep construction intermediates, clean-master candidates, accepted clean masters, and delivery derivatives distinct. Approved transport variants are explicitly authorized representations of evidence, not delivery copies promoted to identity authority. A transport variant never outranks its authoritative source.
 
-Canon Skill owns runtime semantics:
+## Extension test
 
-- authority ordering and conflict resolution;
-- image-role resolution and external-reference isolation;
-- evidence planning from Subject Pack profiles;
-- Prompt Mode and Gen Mode boundaries;
-- Generation Packet freeze, retry, and revision semantics;
-- generic validation stages and result classifications;
-- continuity admission rules;
-- hook lifecycle invocation;
-- clean-master provenance and delivery boundaries;
-- session-local runtime behavior.
+Represent a reusable need as a profile, invariant, role, validator, stage, or policy. Keep the actual feature implementation in the consuming pack. Never branch on a subject name, reference filename, specific calibration label, or a human-only required body part.
 
-The Subject Pack owns subject truth and subject-specific capabilities:
-
-- written canonical facts and invariant groups;
-- canonical reference inventory and reference profiles;
-- approved calibration evidence;
-- subject-specific identity or structure validators;
-- deterministic postprocess hooks;
-- delivery policies that are specific to the subject;
-- feature semantics such as markings, emblems, decals, geometry, or other named canonical details.
-
-The generation backend owns transport and provider execution:
-
-- request serialization;
-- supported image/reference attachment mechanisms;
-- backend-specific randomness or seed controls;
-- edit-mask or image-edit transport;
-- provider result retrieval;
-- backend capability reporting.
-
-## Prompt Mode and Gen Mode
-
-Prompt Mode compiles intent. It may analyze user-provided references, assign roles, build an effective generation spec, manage shot definitions, apply series locks, and perform prompt QA. It must not load generation-only canonical assets, run image generation or editing, or mutate accepted clean-master continuity.
-
-Gen Mode executes a frozen intent. It loads the Subject Pack, selects and transports evidence, invokes generation or editing, runs hooks and validators, classifies results, applies allowed recovery, updates continuity after acceptance, and produces delivery derivatives.
-
-The two modes share the same canon and authority model. Gen Mode may not silently redesign a Prompt Mode specification.
-
-## Session isolation
-
-Runtime state is session-local and transient by default. A new session inherits durable Subject Canon only.
-
-The following do not automatically cross sessions:
-
-- shot registry and selected shot;
-- preview selection and preview gates;
-- identity or operation gates;
-- edit targets and edit contracts;
-- temporary styling;
-- generated images;
-- clean masters;
-- continuity auxiliaries created during the prior session;
-- frozen Generation Packets and retry counters.
-
-Cross-session restoration requires explicit `SESSION_IMPORT` semantics. Imported state must retain provenance and must not be promoted into Subject Canon merely because it was imported.
-
-## Clean-master boundary
-
-Keep four provenance classes distinct:
-
-1. `CONSTRUCTION_INTERMEDIATE`
-2. `CLEAN_MASTER_CANDIDATE`
-3. `ACCEPTED_CLEAN_MASTER`
-4. `DELIVERY_DERIVATIVE`
-
-Only `ACCEPTED_CLEAN_MASTER` is eligible to become continuity auxiliary evidence. Delivery-only transformations such as watermarking, resizing, sharpening, format conversion, compositing, or export decoration must not flow back into identity or continuity authority.
-
-## Extension rule
-
-When a new requirement appears, first ask whether it describes:
-
-- how any subject's canon should be respected;
-- a fact or feature of one subject;
-- a provider-specific transport capability.
-
-Only the first category belongs in Canon Skill. If a generic extension is needed, express it as a role, invariant group, profile, validator interface, hook stage, policy, or other subject-agnostic contract rather than adding a named subject exception.
+Contract helpers validate declarations and receipts. They do not supply a visual judge, automatic landmark detector, generation API, or proof that a real host honored an attachment. Synthetic regression is useful engineering evidence but not a real consumer's acceptance record.

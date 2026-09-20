@@ -1,96 +1,23 @@
 # Recovery Model
 
-Recovery decides what may happen after a classified result without changing the frozen Generation Packet semantics.
+Only a packet-authorized first HARD_RESET has an automatic generation recovery path. Ordinary defaults may permit one; a Subject Pack or route policy can narrow that allowance to zero, never broaden it beyond one.
 
-The runtime has one automatic recovery path: a single fresh retry after the first `HARD_RESET` for a packet revision.
+## One safe fresh retry
 
-## Recovery table
+Before the first automatic dispatch, require HARD_RESET, resolved dependencies, packet retry eligibility and unused hard_reset_auto_retry_count. Increment/reserve the count before dispatch. Reuse the identical frozen packet and authorized inputs; do not condition on the failed image, redesign the prompt, reassign references or change edit/preview targets.
 
-| Classification | Automatic action | Result may be reused as reference | Principal action |
-| --- | --- | --- | --- |
-| `ACCEPT` | promote validated candidate | only after continuity admission | deliver or continue |
-| `HARD_RESET` | one fresh retry on first occurrence only | no | revise after automatic path stops |
-| `RETRY_REQUIRED` | none | no | explicit `RETRY` or `REVISE` |
-| `REFINE_ELIGIBLE` | none | only as explicit refine edit target, never as continuity | explicit local refinement |
-| `BLOCKED` | none | not applicable | resolve dependency |
+After the fresh retry produces its result, stop automatic generation regardless of whether it is ACCEPT, HARD_RESET, RETRY_REQUIRED, REFINE_ELIGIBLE or BLOCKED. ACCEPT may proceed to ordinary validated delivery; it is not permission to sample again.
 
-## One-safe-retry HARD_RESET rule
+Keep the allowance packet-revision local. Explicit retries do not replenish a used allowance. Import must preserve the consumed budget. Do not fabricate a revision merely to reset it. A genuine Principal-authorized semantic revision is a new packet.
 
-Track automatic hard-reset recovery per frozen packet revision.
+## Other outcomes
 
-On attempt 1:
+RETRY_REQUIRED never retries automatically. Wait for an explicit RETRY or authorized REVISE. Do not treat an operation miss as a hard identity failure to gain automatic sampling.
 
-1. validate the result;
-2. if classification is `HARD_RESET` and `hard_reset_auto_retry_count == 0`, discard the failed candidate;
-3. increment `hard_reset_auto_retry_count` to 1;
-4. execute one fresh retry from the same frozen packet semantics.
+REFINE_ELIGIBLE requires explicit bounded refinement, named local defects, the exact usable candidate, Canon evidence, and preservation of all passed V1/V2 dimensions. The new attempt receives full validation. Eligibility is not acceptance or continuity admission.
 
-"Fresh" means:
+BLOCKED requires dependency repair. Retrieval of a completed result is not a new sample; transport retry must not secretly generate extra images. A changed evidence set or semantic fallback requires revision, not relabeling a retry.
 
-- reuse the same Subject Pack revision;
-- reuse the same route, operation, effective spec, shot, series lock, evidence-role bindings, canonical evidence, external evidence, continuity evidence, preserve constraints, hooks, validators, retry policy, and delivery policy;
-- allow only backend execution randomness or other packet-approved nondeterminism to differ;
-- do not feed the hard-reset result back as identity, continuity, preview, edit, or refinement evidence.
+## Pack-specific gates
 
-After the fresh retry completes, stop automatic execution regardless of its classification.
-
-If the second attempt is `ACCEPT`, accept it normally. If it is `HARD_RESET`, `RETRY_REQUIRED`, `REFINE_ELIGIBLE`, or `BLOCKED`, report that result and take no further automatic generation action.
-
-A new `REVISE` packet starts a new packet revision and resets the packet-local hard-reset automatic retry counter.
-
-## RETRY_REQUIRED
-
-Do not automatically retry `RETRY_REQUIRED`.
-
-This class means the semantic packet is still valid but execution did not comply. An explicit `RETRY` may sample the same packet again. If the requested camera, pose, composition, roles, or preserve constraints need to change, use `REVISE` instead.
-
-A retry-required output is not eligible as:
-
-- continuity evidence;
-- identity evidence;
-- a clean master;
-- an implicit preview reference.
-
-## REFINE_ELIGIBLE
-
-Refinement is intentionally explicit.
-
-The candidate may be bound as an `EDIT_TARGET` for a local refinement only when:
-
-- the refinement contract names the local defects;
-- all V1/V2-passed scopes become preserve constraints;
-- no new external role is inferred;
-- canonical evidence remains available for validation.
-
-Refinement never means "keep improving until it looks good." Each refine attempt must be bounded, revalidated, and reclassified.
-
-## BLOCKED
-
-Blocked states require dependency repair, not sampling.
-
-Examples:
-
-- missing Subject Pack -> resolve the pack;
-- missing canonical evidence -> repair the Subject Pack or revise the shot;
-- missing edit target -> obtain the correct target;
-- gate not satisfied -> satisfy or explicitly revise the workflow;
-- validator unavailable -> restore the required validator;
-- unverified provenance -> recover verified provenance or exclude the item.
-
-Do not weaken authority, drop validators, or substitute lower-authority evidence to escape `BLOCKED`.
-
-## Recovery provenance
-
-Runtime State should retain:
-
-```yaml
-retry_count:
-hard_reset_auto_retry_count:
-last_result_classification:
-last_result_id:
-validation_report:
-```
-
-`retry_count` counts execution retries for the active packet revision. `hard_reset_auto_retry_count` is specifically capped at 1 for automatic hard-reset recovery.
-
-An explicit principal retry after `RETRY_REQUIRED` may increment `retry_count`, but it does not grant another automatic hard-reset retry if the packet revision already consumed its one-safe-retry allowance.
+Calibration or other declared workflows may require Principal review and disable automatic retry. Respect the frozen stricter policy. If legacy consumer instructions disagree about retaining/dropping an auxiliary on reset, record the contradiction and block cutover; never silently modify frozen evidence membership.

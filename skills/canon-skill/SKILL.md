@@ -1,44 +1,36 @@
 ---
 name: canon-skill
-description: Compile or execute canon-aware image generation and editing for a stable visual subject using a caller-provided Subject Pack, with explicit evidence authority, reference-role isolation, frozen generation packets, validation, recovery, and continuity rules. Use for multi-shot, multi-reference, iterative image workflows where subject identity or structure must stay stable; not for defining a subject's canon, storing subject-specific facts, generic one-off image generation, or workflows without a usable Subject Pack.
+description: Run canon-aware image generation and editing for a stable visual subject from a caller-owned Subject Pack. Use for multi-shot series, multi-reference role isolation, iterative edits, calibration, and continuity-sensitive image workflows; also compile generation specifications without generating images. Not for inventing a subject's canon, generic one-off illustration, or unrelated retouching.
 ---
 
 # Canon Skill
 
-Run stable image workflows without embedding any particular subject inside the runtime. The Subject Pack defines what the subject is; Canon Skill defines how evidence is selected, isolated, frozen, validated, recovered, and carried across accepted shots.
+Respect the subject's Canon without owning its identity facts. Use the Subject Pack for subject truth and the active generation backend for execution; never make this skill depend on a named Subject Project.
 
-## Resolve the Subject Pack
+## Resolve the subject and mode
 
-Before compiling or generating, resolve a usable Subject Pack from an explicit task input or the active Subject Project. Read [the Subject Pack contract](references/subject-pack.md) when resolving fields, capabilities, validators, hooks, or delivery policies.
+Read [Begin](references/begin.md) to discover the caller's Subject Pack, establish a fresh session, and select the mode. Missing or conflicting authority is a blocker, not permission to invent a subject.
 
-Treat Subject Pack content as subject-owned authority. Do not copy subject-specific identity facts, filenames, calibration labels, or feature logic into Canon Skill. If no usable pack is available, stop with `SUBJECT_PACK_UNAVAILABLE` rather than inventing canon.
+Use [Prompt Mode](references/prompt-mode.md) to compile intent, reference roles, series locks, and shot definitions. Load only the written-authority projection: do not select canonical image IDs, bootstrap generation references, generate images, or update clean masters.
 
-Read [the architecture boundary](references/architecture-boundary.md) when deciding whether a requirement belongs in Canon Skill, a Subject Pack, or a generation backend.
+Use [Gen Mode](references/gen-mode.md) for actual generation or editing. Resolve the pack, verify usable inputs, select evidence, freeze the packet, execute the declared hooks, validate the exact candidate, and respect recovery and delivery boundaries.
 
-## Select Prompt Mode or Gen Mode
+## Preserve the authority boundary
 
-Use Prompt Mode for reference analysis, role separation, generation-spec compilation, shot-registry work, series locks, and prompt QA. Prompt Mode must not load generation-only canonical assets, execute image generation or editing, or update clean-master continuity state.
+Apply [the authority model](references/authority-model.md) within each evidence item's authorized scope. Canonical identity wins over external references and accepted continuity. Previews, failed results, and delivery derivatives never become identity authority.
 
-Use Gen Mode for subject loading, evidence transport and selection, actual generation or editing, validation, retry or recovery, continuity updates, hooks, and delivery. Gen Mode must preserve the Prompt Mode specification unless the principal explicitly revises it.
+Read [architecture boundaries](references/architecture-boundary.md) and [the Subject Pack contract](references/subject-pack.md) when a new requirement needs a subject-owned extension. Keep subject facts, features, calibration labels, and hook implementations outside this skill.
 
-Both modes use the same authority rules. Read [the authority model](references/authority-model.md) before resolving conflicts between written canon, canonical visuals, calibration evidence, external references, continuity, previews, or unverified generations.
+## Load only the needed runtime contracts
 
-Before a mode binds images or plans evidence, resolve the runtime in order: [runtime state](references/runtime-state.md), [route](references/route-resolver.md), [image roles](references/image-role-resolver.md), [external-reference routing](references/external-reference-router.md), then [canonical evidence](references/evidence-planner.md). Later stages may consume earlier decisions but must not silently reinterpret them.
+For a new execution or semantic revision, use [route resolution](references/route-resolver.md), [image-role resolution](references/image-role-resolver.md), [external routing](references/external-reference-router.md), and [evidence planning](references/evidence-planner.md), in that order. Use [Runtime State](references/runtime-state.md) for scoped gates and explicit `SESSION_IMPORT`.
 
-## Freeze execution before generation
+Before execution, read [Generation Packet](references/generation-packet.md), [hook lifecycle](references/hooks.md), and [backend transport](references/generation-backend.md). `RETRY` preserves packet semantics; only a Principal-authorized `REVISE` may change them.
 
-Before an actual generation or edit, compile the effective task into a Generation Packet containing the subject, route, operation, effective spec, shot definition, selected evidence, preserve constraints, risk guards, hooks, validators, retry policy, and delivery policy.
+For results, read [validation](references/validator.md), [classification](references/result-model.md), [recovery](references/recovery.md), and [continuity](references/continuity.md). A successful preview or diagnostic is still not an accepted final clean master.
 
-Read [the Generation Packet contract](references/generation-packet.md) before freezing or revising a packet. Once frozen, `RETRY` may change backend randomness or transport details but must not change packet semantics. `REVISE` may change only principal-authorized fields and must produce a newly frozen packet.
+## Check contracts without inventing acceptance
 
-Generated outputs never become identity authority merely because they are recent. Only an accepted clean master may become continuity auxiliary evidence, and continuity may supplement canon but never replace it.
+Use [contract tools](references/contract-tools.md) for bundled schemas, deterministic packet checks, and declaration-level tests. Passing a schema, mock backend, or dry run does not prove image fidelity, actual attachment transport, hook availability, Principal approval, or real-subject acceptance.
 
-After each execution, validate and recover in order using [the Validator Model](references/validator.md), [the Result Model](references/result-model.md), [the Recovery Model](references/recovery.md), and [clean-master/continuity rules](references/continuity.md). Only `ACCEPT` may create an accepted clean master; only an accepted clean master may be considered for continuity.
-
-## Fail explicitly at contract boundaries
-
-Use explicit blocked states when required inputs or gates are unavailable instead of weakening canon constraints. Preserve the clean-master boundary between construction intermediates, clean master candidates, accepted clean masters, and delivery derivatives.
-
-Session-local runtime state does not write back to Subject Canon. A new session inherits durable Canon truth only; shot state, preview choices, gate state, generated images, clean masters, edit targets, and temporary styling require explicit session import if they must be restored.
-
-Do not silently reinterpret an edit target, preview, external reference, or accepted continuity image as a different role. Role resolution must happen before external-reference routing, and higher-authority identity evidence must not be overridden by lower-authority convenience evidence.
+Stop at a missing dependency or unsatisfied gate. Do not execute arbitrary commands from a Subject Pack, reuse a failed image as an identity chain, restore prior-session image state implicitly, or present simulated evidence as production evidence.

@@ -1,171 +1,35 @@
 # Subject Pack Contract
 
-A Subject Pack is the subject-owned input contract consumed by Canon Skill. It defines durable canonical truth, the evidence that supports that truth, and optional subject-specific validation, hooks, and delivery behavior.
+The normative v1 wire shape is [subject-pack.schema.json](../schemas/subject-pack.schema.json); shared definitions are in [contracts.schema.json](../schemas/contracts.schema.json). Resolve a caller-owned pack, never embed a real subject in this skill.
 
-Canon Skill must be able to consume Subject Packs for humans, animals, virtual characters, products, robots, or other stable visual subjects without changing its core schema.
+## Required blocks
 
-## Required top-level shape
+Require `subject`, `canon`, `references`, `calibration`, `validators`, `postprocess`, and `delivery`. Use `subject.id` and a resolvable revision for provenance. `subject.type` is descriptive, not an anatomy switch. Empty optional capability lists are valid.
 
-A v1 Subject Pack uses this minimum shape:
+`canon.written_authority` records facts or written-source locators, revision and invariant scope. `invariant_groups` uses generic IDs, classes, regions and constraints. Do not require face, hair, coat, marks, or any particular anatomy as generic fields.
 
-```yaml
-subject:
-  id: example-subject
-  type: arbitrary-subject-class
+## References and profiles
 
-canon:
-  written_authority: []
-  invariant_groups: []
+The [reference schema](../schemas/references.schema.json) separates authority, visible regions, explicit invariant `covers`, view, generation eligibility and diagnostic-only status. Experimental older fixtures using invariant IDs in `visible_regions` remain readable, but new packs should use `covers` explicitly. Real execution must resolve asset bytes and checksums; a placeholder locator does not satisfy it.
 
-references:
-  inventory: []
-  profiles: []
-  bootstrap_policy: {}
+A profile matches generic shot attributes and requires invariant groups. `require.assets` may declare an irreducible complementary set whose order is meaningful; minimization cannot remove or reorder it. `prefer_assets` is a preference, not a substitute for coverage. Profiles may be `PRIMARY` or `SUPPLEMENT`. With `runtime_policy.profile_selection = SINGLE_PRIMARY`, select exactly one primary; matching conditional supplements remain separate. Otherwise merge compatible matching requirements, never contradictory shot definitions.
 
-calibration:
-  enabled: false
-  profiles: []
+`bootstrap_policy` may declare `GEN_ONLY`, required bootstrap IDs and permitted fallback order. Bootstrapping availability is not the same as attaching every bootstrapped image to every call.
 
-validators:
-  identity: []
-  structure: []
-  local_quality: []
+Approved `transports` retain source identity, checksum and approval provenance. Their kind is `ORIGINAL` or `APPROVED_TRANSPORT`; delivery-only or unverified generated derivatives are not authorized transport variants.
 
-postprocess:
-  hooks: []
+## Calibration and optional behavior
 
-delivery:
-  policies: []
-```
+Use [calibration.schema.json](../schemas/calibration.schema.json). Profiles declare purpose, visible regions, authority assets, view matching, approval, generation eligibility and diagnostic-only status. Diagnostic eligibility is independent of ordinary generation eligibility for a shared underlying asset. Never feed a diagnostic-only board to the generator just because it exists in the inventory.
 
-Fields may be extended by future compatible versions, but subject-specific concepts must not become required generic keys.
+Subject validators report through generic V1/V2/V3 outcomes. Resolve required handler availability before generation. Hooks declare stage, required output kinds, handler/version, scope and mutation constraints under [the hook contract](hooks.md). Declare missing capabilities rather than inventing no-op implementations.
 
-## Subject identity
+`runtime_policy` may supply ratio defaults, single-primary selection, bounded retry policy, route-specific gates, a continuity limit, construction stages and external-role extensions. Extensions use `extension:<name>` and an explicit non-identity influence definition. Do not convert pack-defined policy into a hard-coded subject exception in the core.
 
-`subject.id` is a stable project-scoped identifier. `subject.type` is descriptive routing metadata, not a hard-coded switch inside Canon Skill.
+`delivery.policies` constrain derivatives from accepted clean masters. Optional calibration, custom hooks, validators, or special delivery rules need not exist for every subject class. Preview/diagnostic presentation does not create final clean-master authority.
 
-Canon Skill must not branch on values such as `human`, `pet`, or `robot` to discover mandatory body parts. Subject-specific behavior is declared through invariant groups, reference profiles, validators, and hooks.
+## Examples and validation
 
-## Canon
+The [human](fixtures/human.yaml), [pet](fixtures/pet.yaml), and [virtual character](fixtures/virtual-character.yaml) fixtures share this contract. Their locators, checksums and hook handles are explicitly test-only declarations, not actual image assets or real-subject approvals.
 
-`canon.written_authority` contains durable written facts or references to authoritative written sources. Each entry should identify its provenance and scope so runtime conflicts can be resolved without relying on recency.
-
-`canon.invariant_groups` describes features that must remain stable across generation. A group should use generic concepts such as:
-
-```yaml
-- id: primary-identity
-  class: identity
-  regions: [head, upper-body]
-  constraints:
-    - preserve distinguishing geometry
-    - preserve canonical surface pattern
-```
-
-Recommended `class` values include `identity`, `structure`, `surface`, `silhouette`, `material`, and `symbol`, but packs may define additional classes when needed.
-
-Do not require generic keys such as `face`, `hair`, `beauty_mark`, `coat`, or `human_anatomy`. Those are subject-owned semantics if a pack needs them.
-
-## Reference inventory
-
-`references.inventory` registers durable visual evidence. Each record should include enough metadata to determine authority, view, visible regions, generation eligibility, and provenance.
-
-Example:
-
-```yaml
-- id: canonical-front
-  asset: asset://subject/canonical-front
-  authority: CANONICAL_VISUAL
-  views: [front]
-  visible_regions: [primary-identity, torso-structure]
-  generation_eligible: true
-  diagnostic_only: false
-```
-
-`asset` may be a repository path, project asset identifier, or another transportable locator understood by the active Subject Project. Canon Skill treats it as opaque until a generation backend adapter resolves transport.
-
-## Reference profiles
-
-`references.profiles` lets the Subject Pack describe minimum role-relevant evidence sets without forcing Canon Skill to send every canonical reference into every shot.
-
-Example:
-
-```yaml
-- id: front-closeup
-  match:
-    views: [front, three-quarter-front]
-    framing: [close-up, bust]
-  require:
-    invariant_groups: [primary-identity]
-  prefer_assets: [canonical-front]
-```
-
-Evidence Planner selects the smallest profile-supported evidence set that covers the shot's required invariant groups and view constraints. If no profile satisfies required canon, generation is blocked rather than silently weakening evidence.
-
-`references.bootstrap_policy` defines whether and how a subject may begin work when normal evidence is incomplete. Bootstrap policy never elevates generated images above the authority model.
-
-## Calibration
-
-Calibration is optional and generic:
-
-```yaml
-calibration:
-  enabled: true
-  profiles:
-    - id: side-diagnostic
-      purpose: verify side geometry
-      visible_regions: [profile-structure]
-      authority_assets: [calibration-side]
-      generation_eligible: false
-      diagnostic_only: true
-```
-
-Canon Skill understands approved calibration authority, matching-view calibration, generation eligibility, and diagnostic-only evidence. It does not interpret subject-specific calibration numbering or feature names.
-
-## Validators
-
-Validator declarations may reference generic runtime validators or subject-provided implementations.
-
-```yaml
-validators:
-  identity:
-    - id: stable-identity
-      required_for: [FINAL]
-  structure:
-    - id: primary-geometry
-      required_for: [FINAL]
-  local_quality:
-    - id: surface-integrity
-      required_for: [FINAL]
-```
-
-Subject-provided validators may inspect subject-specific regions or semantics, but they report through the generic validation/result model.
-
-## Hooks
-
-Hooks provide deterministic subject-specific processing without teaching Canon Skill the feature itself.
-
-```yaml
-postprocess:
-  hooks:
-    - id: canonical-detail-finalize
-      stage: POST_GENERATION
-      required_for: [FINAL]
-```
-
-Supported lifecycle stages are expected to include `PRE_GENERATION`, `POST_GENERATION`, `PRE_VALIDATION`, `POST_VALIDATION`, and `PRE_DELIVERY`. Canon Skill invokes declared hooks; the Subject Pack owns their behavior.
-
-## Delivery policies
-
-`delivery.policies` declares subject-specific output requirements such as mandatory finalization hooks, permitted derivative types, or export constraints. Delivery policy cannot promote a derivative into canonical or continuity authority.
-
-## Capability variability
-
-A valid pack may omit calibration, custom hooks, custom validators, or specialized delivery rules. Runtime code must feature-detect declared capabilities instead of assuming every Subject Pack implements the same workflow.
-
-The anonymous fixtures demonstrate the same contract across three subject classes:
-
-- [human fixture](fixtures/human.yaml)
-- [pet fixture](fixtures/pet.yaml)
-- [virtual-character fixture](fixtures/virtual-character.yaml)
-
-If a requirement cannot be expressed naturally across these classes without adding a subject-specific generic field, revise the contract before extending runtime implementation.
+Use [contract tools](contract-tools.md) to validate schema, duplicate IDs and cross-references. Schema-valid data can still be semantically contradictory or unavailable; Gen Mode must resolve those dependencies before execution.

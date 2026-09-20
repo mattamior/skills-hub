@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/generation-packet.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["subject", "route", "operation", "effective_spec", "series_lock", "shot", "canonical_evidence", "external_evidence", "continuity_evidence", "preserve_constraints", "risk_guards", "preprocess_hooks", "postprocess_hooks", "validators", "retry_policy", "delivery_policy", "output_kind"],
+  "properties": {
+    "subject": {"type": "object", "required": ["id", "pack_revision"], "additionalProperties": false, "properties": {"id": {"type": "string", "minLength": 1}, "pack_revision": {"type": "string", "minLength": 1}}},
+    "route": {"enum": ["SERIES", "EXISTING_SERIES_SHOT", "STANDALONE_SHOT", "PREVIEW_ONLY", "CURRENT_SHOT_OPERATION", "CALIBRATION"]},
+    "operation": {"enum": ["GENERATE", "EDIT", "VALIDATE", "DERIVE"]},
+    "output_kind": {"enum": ["FINAL", "IDENTITY_CHECK", "PREVIEW", "DIAGNOSTIC", "CALIBRATION"]},
+    "effective_spec": {"type": "object"}, "series_lock": {"type": "object"}, "shot": {"type": "object"},
+    "canonical_evidence": {"type": "array", "items": {"type": "object"}}, "external_evidence": {"type": "array", "items": {"type": "object"}}, "continuity_evidence": {"type": "array", "items": {"type": "object"}},
+    "preserve_constraints": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}, "risk_guards": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "preprocess_hooks": {"type": "array", "items": {"type": "object"}}, "postprocess_hooks": {"type": "array", "items": {"type": "object"}}, "validators": {"type": "array", "items": {"type": "object"}},
+    "retry_policy": {"type": "object"}, "delivery_policy": {"type": "object"}, "edit_target": {"type": "object"}, "edit_contract": {"type": "object"}, "preview_reference": {"type": "object"},
+    "construction_policy": {"type": "object"}, "transport_requirements": {"type": "object"}, "gates": {"type": "array", "items": {"type": "object"}}, "validation_phases": {"type": "array", "items": {"type": "object"}}, "revision": {"type": ["string", "integer"]}
+  }
+}

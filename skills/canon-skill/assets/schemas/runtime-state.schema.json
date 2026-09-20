@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/runtime-state.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["current_subject", "current_route", "current_stage", "series_lock", "target_ratio", "identity_gate", "preview_gate", "shot_registry", "selected_shot", "current_revision", "image_operation_role", "edit_target", "edit_contract", "preview_shot_reference", "external_reference_mode", "external_reference_role_map", "accepted_clean_master", "continuity_auxiliaries", "generation_packet", "retry_count", "hard_reset_auto_retry_count", "validation_report", "last_result_classification", "last_result_id", "candidate_clean_master", "session_import"],
+  "properties": {
+    "current_subject": {"type": ["object", "null"]},
+    "current_route": {"enum": ["SERIES", "EXISTING_SERIES_SHOT", "STANDALONE_SHOT", "PREVIEW_ONLY", "CURRENT_SHOT_OPERATION", "CALIBRATION", null]},
+    "current_stage": {"type": ["string", "null"]}, "series_lock": {"type": "object"}, "target_ratio": {"type": ["string", "null"]},
+    "identity_gate": {"$ref": "#/$defs/gate"}, "preview_gate": {"$ref": "#/$defs/gate"},
+    "shot_registry": {"type": "object"}, "selected_shot": {"type": ["string", "null"]}, "current_revision": {"type": ["string", "integer", "null"]},
+    "image_operation_role": {"type": ["string", "null"]}, "edit_target": {"type": ["object", "null"]}, "edit_contract": {"type": ["object", "null"]},
+    "preview_shot_reference": {"type": ["object", "null"]},
+    "external_reference_mode": {"enum": ["NONE", "ROLE_SCOPED", "CONSERVATIVE_FALLBACK"]}, "external_reference_role_map": {"type": "object"},
+    "accepted_clean_master": {"type": ["object", "null"]}, "continuity_auxiliaries": {"type": "array", "items": {"type": "object"}},
+    "generation_packet": {"type": ["object", "null"]}, "retry_count": {"type": "integer", "minimum": 0},
+    "hard_reset_auto_retry_count": {"type": "integer", "minimum": 0, "maximum": 1}, "validation_report": {"type": ["object", "null"]},
+    "last_result_classification": {"enum": ["ACCEPT", "HARD_RESET", "RETRY_REQUIRED", "REFINE_ELIGIBLE", "BLOCKED", null]},
+    "last_result_id": {"type": ["string", "null"]}, "candidate_clean_master": {"type": ["object", "null"]}, "session_import": {"type": ["object", "null"]}
+  },
+  "$defs": {"gate": {"type": "object", "required": ["status"], "additionalProperties": false, "properties": {"status": {"enum": ["OPEN", "PASSED", "BLOCKED", "NOT_REQUIRED"]}, "evidence_id": {"type": "string", "minLength": 1}, "scope_hash": {"type": "string", "minLength": 1}}}}
+}

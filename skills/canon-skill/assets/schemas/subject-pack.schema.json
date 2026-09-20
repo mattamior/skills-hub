@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/subject-pack.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["subject", "canon", "references", "calibration", "validators", "postprocess", "delivery"],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "subject": {
+      "type": "object", "additionalProperties": false, "required": ["id", "type"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"},
+        "type": {"$ref": "#/$defs/text"},
+        "revision": {"$ref": "#/$defs/text"}
+      }
+    },
+    "canon": {
+      "type": "object", "additionalProperties": false,
+      "required": ["written_authority", "invariant_groups"],
+      "properties": {
+        "written_authority": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["id", "scope"],
+            "properties": {
+              "id": {"$ref": "#/$defs/text"},
+              "authority": {"const": "WRITTEN_CANON"},
+              "scope": {"$ref": "#/$defs/strings"},
+              "facts": {"$ref": "#/$defs/strings"},
+              "source": {"$ref": "#/$defs/text"}
+            }
+          }
+        },
+        "invariant_groups": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "class", "regions", "constraints"],
+            "properties": {
+              "id": {"$ref": "#/$defs/text"},
+              "class": {"$ref": "#/$defs/text"},
+              "regions": {"$ref": "#/$defs/strings"},
+              "constraints": {"$ref": "#/$defs/strings"},
+              "final_only": {"type": "boolean"},
+              "source": {"$ref": "#/$defs/text"}
+            }
+          }
+        }
+      }
+    },
+    "references": {"$ref": "https://schemas.canon-skill.invalid/0.1/references.schema.json"},
+    "calibration": {"$ref": "https://schemas.canon-skill.invalid/0.1/calibration.schema.json"},
+    "validators": {
+      "type": "object", "additionalProperties": false,
+      "required": ["identity", "structure", "local_quality"],
+      "properties": {
+        "identity": {"type": "array", "items": {"$ref": "#/$defs/validator"}},
+        "structure": {"type": "array", "items": {"$ref": "#/$defs/validator"}},
+        "local_quality": {"type": "array", "items": {"$ref": "#/$defs/validator"}}
+      }
+    },
+    "postprocess": {
+      "type": "object", "additionalProperties": false, "required": ["hooks"],
+      "properties": {"hooks": {"type": "array", "items": {"$ref": "#/$defs/hook"}}}
+    },
+    "delivery": {
+      "type": "object", "additionalProperties": false, "required": ["policies"],
+      "properties": {"policies": {"type": "array", "items": {"type": "object"}}}
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "defaults": {"type": "object"},
+        "gates": {"type": "object"},
+        "retry": {"type": "object"},
+        "construction": {"type": "object"},
+        "external_reference": {"type": "object"},
+        "transport": {"type": "object"}
+      }
+    },
+    "extensions": {"type": "object"}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "strings": {"type": "array", "items": {"$ref": "#/$defs/text"}, "uniqueItems": true},
+    "validator": {
+      "type": "object", "additionalProperties": false, "required": ["id"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"},
+        "layer": {"enum": ["V1", "V2", "V3"]},
+        "required_for": {"$ref": "#/$defs/strings"},
+        "checks": {"$ref": "#/$defs/strings"},
+        "scope": {"$ref": "#/$defs/strings"},
+        "handler": {"$ref": "#/$defs/text"},
+        "failure_mapping": {"type": "object"}
+      }
+    },
+    "hook": {
+      "type": "object", "additionalProperties": false, "required": ["id", "stage", "required_for"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"},
+        "stage": {"enum": ["PRE_GENERATION", "POST_GENERATION", "PRE_VALIDATION", "POST_VALIDATION", "PRE_DELIVERY"]},
+        "required_for": {"$ref": "#/$defs/strings"},
+        "handler": {"$ref": "#/$defs/text"},
+        "order": {"type": "integer"},
+        "scope": {"$ref": "#/$defs/strings"},
+        "parameters": {"type": "object"},
+        "deterministic": {"type": "boolean"},
+        "checks_before": {"$ref": "#/$defs/strings"}
+      }
+    }
+  }
+}

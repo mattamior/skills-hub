@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/result.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["result_id", "packet_revision", "attempt_index", "classification", "reason_codes", "validator_report", "hook_execution_record", "candidate_provenance", "automatic_action"],
+  "properties": {
+    "result_id": {"type": "string", "minLength": 1}, "packet_revision": {"type": "string", "minLength": 1}, "attempt_index": {"type": "integer", "minimum": 1},
+    "classification": {"enum": ["ACCEPT", "HARD_RESET", "RETRY_REQUIRED", "REFINE_ELIGIBLE", "BLOCKED"]},
+    "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "validator_report": {"type": "array", "items": {"type": "object"}}, "hook_execution_record": {"type": "array", "items": {"type": "object"}}, "candidate_provenance": {"type": ["object", "null"]},
+    "automatic_action": {"enum": ["NONE", "FRESH_RETRY_ONCE"]}
+  }
+}

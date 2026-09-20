@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/calibration.schema.json",
+  "type": "object", "additionalProperties": false, "required": ["enabled", "profiles"],
+  "properties": {
+    "enabled": {"type": "boolean"},
+    "profiles": {"type": "array", "items": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "purpose", "visible_regions", "authority_assets", "generation_eligible", "diagnostic_only"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1}, "purpose": {"type": "string", "minLength": 1},
+        "visible_regions": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "authority_assets": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "generation_eligible": {"type": "boolean"}, "diagnostic_only": {"type": "boolean"}
+      },
+      "allOf": [{"if": {"properties": {"diagnostic_only": {"const": true}}}, "then": {"properties": {"generation_eligible": {"const": false}}}}]
+    }}
+  }
+}

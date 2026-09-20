@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.canon-skill.invalid/0.1/references.schema.json",
+  "type": "object",
+  "required": ["inventory", "profiles", "bootstrap_policy"],
+  "additionalProperties": false,
+  "properties": {
+    "inventory": {"type": "array", "items": {"$ref": "#/$defs/asset"}},
+    "profiles": {"type": "array", "items": {"$ref": "#/$defs/profile"}},
+    "bootstrap_policy": {"type": "object"}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1},
+    "strings": {"type": "array", "items": {"$ref": "#/$defs/text"}, "uniqueItems": true},
+    "asset": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "asset", "authority", "views", "visible_regions", "generation_eligible", "diagnostic_only"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"}, "asset": {"$ref": "#/$defs/text"},
+        "authority": {"enum": ["CANONICAL_VISUAL", "APPROVED_CALIBRATION"]},
+        "views": {"$ref": "#/$defs/strings"}, "visible_regions": {"$ref": "#/$defs/strings"},
+        "generation_eligible": {"type": "boolean"}, "diagnostic_only": {"type": "boolean"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "strict_view": {"type": "boolean"}, "provenance": {"type": "object"}
+      },
+      "allOf": [{"if": {"properties": {"diagnostic_only": {"const": true}}}, "then": {"properties": {"generation_eligible": {"const": false}}}}]
+    },
+    "profile": {
+      "type": "object", "additionalProperties": false, "required": ["id", "match", "require"],
+      "properties": {
+        "id": {"$ref": "#/$defs/text"},
+        "match": {"type": "object", "additionalProperties": false, "properties": {"views": {"$ref": "#/$defs/strings"}, "framing": {"$ref": "#/$defs/strings"}, "operations": {"$ref": "#/$defs/strings"}}},
+        "require": {"type": "object", "additionalProperties": false, "required": ["invariant_groups"], "properties": {"invariant_groups": {"$ref": "#/$defs/strings"}, "assets": {"$ref": "#/$defs/strings"}}},
+        "prefer_assets": {"$ref": "#/$defs/strings"}
+      }
+    }
+  }
+}

@@ -23,6 +23,8 @@ Use Gen Mode for subject loading, evidence transport and selection, actual gener
 
 Both modes use the same authority rules. Read [the authority model](references/authority-model.md) before resolving conflicts between written canon, canonical visuals, calibration evidence, external references, continuity, previews, or unverified generations.
 
+Before a mode binds images or plans evidence, resolve the runtime in order: [runtime state](references/runtime-state.md), [route](references/route-resolver.md), [image roles](references/image-role-resolver.md), [external-reference routing](references/external-reference-router.md), then [canonical evidence](references/evidence-planner.md). Later stages may consume earlier decisions but must not silently reinterpret them.
+
 ## Freeze execution before generation
 
 Before an actual generation or edit, compile the effective task into a Generation Packet containing the subject, route, operation, effective spec, shot definition, selected evidence, preserve constraints, risk guards, hooks, validators, retry policy, and delivery policy.
